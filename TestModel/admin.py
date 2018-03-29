@@ -1,5 +1,5 @@
 from django.contrib import admin
-from TestModel.models import *
+from TestModel.dbModels import *
 
 # Register your models here.
 admin.site.register(Requirement)
