@@ -15,15 +15,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from Controller import *
-
+from Demo.Controller.homeController import request
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', apiController),
-    path('login/', loginController),
-    path('index/', homeController),
-    path('requement/', requementController),
-    path('version/', versionController),
-    path('staff/', staffController),
-    path('', homeController),
+    path('test/', request.index),
 ]
