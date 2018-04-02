@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 from django.http import HttpResponse
-from TestModel.models import Requirement
+from TestModel.dbModels import Requirement
 
 def db_insert(request):
 	item = Requirement(startover_no=1, pro_name='TEST系统', sys_name='TS-V1.1.2', thr_sys_test='10.0', thr_check_test='4.0', thr_mock_test='8.1')
