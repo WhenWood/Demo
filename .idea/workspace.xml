@@ -2,20 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9de65ad3-67d2-4fc0-a385-d43dd73b85a4" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/Demo/Constant/authContant.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Demo/Controller/LoginController.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Demo/Model/Auth.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Controller/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Controller/baseController.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Controller/homeController.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Demo/Controller/homeController.py" beforeDir="false" afterPath="$PROJECT_DIR$/Demo/Controller/HomeController.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Demo/modelOprate.py" beforeDir="false" afterPath="$PROJECT_DIR$/Demo/modelOprate.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Demo/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Demo/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Demo/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/Demo/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TestModel/dbModels.py" beforeDir="false" afterPath="$PROJECT_DIR$/TestModel/dbModels.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/View/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Controller/LoginController.py" beforeDir="false" afterPath="$PROJECT_DIR$/Demo/Controller/LoginController.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Demo/Model/Auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/Demo/Model/Auth.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -53,8 +41,8 @@
       <file leaf-file-name="dbModels.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/TestModel/dbModels.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-10">
-              <caret line="9" column="47" lean-forward="true" selection-start-line="9" selection-start-column="47" selection-end-line="9" selection-end-column="47" />
+            <state relative-caret-position="191">
+              <caret line="29" column="52" lean-forward="true" selection-start-line="29" selection-start-column="52" selection-end-line="29" selection-end-column="52" />
             </state>
           </provider>
         </entry>
@@ -62,8 +50,8 @@
       <file leaf-file-name="Auth.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Demo/Model/Auth.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret line="3" lean-forward="true" selection-start-line="3" selection-end-line="3" />
+            <state relative-caret-position="289">
+              <caret line="21" column="34" selection-start-line="21" selection-start-column="34" selection-end-line="21" selection-end-column="34" />
               <folding>
                 <element signature="e#0#37#0" expanded="true" />
               </folding>
@@ -74,8 +62,8 @@
       <file leaf-file-name="LoginController.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Demo/Controller/LoginController.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="251">
-              <caret line="21" lean-forward="true" selection-start-line="21" selection-end-line="21" />
+            <state relative-caret-position="266">
+              <caret line="17" column="52" selection-start-line="17" selection-start-column="52" selection-end-line="17" selection-end-column="52" />
               <folding>
                 <element signature="e#0#51#0" expanded="true" />
               </folding>
@@ -86,8 +74,23 @@
       <file leaf-file-name="sites.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/django/contrib/admin/sites.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="190">
-              <caret line="10" column="43" lean-forward="true" selection-start-line="10" selection-start-column="43" selection-end-line="10" selection-end-column="43" />
+            <state relative-caret-position="4066">
+              <caret line="214" column="39" selection-start-line="214" selection-start-column="27" selection-end-line="214" selection-end-column="39" />
+              <folding>
+                <element signature="e#0#36#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="modelOprate.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/TestModel/modelOprate.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="285">
+              <caret line="20" column="8" selection-start-line="20" selection-start-column="8" selection-end-line="27" selection-end-column="38" />
+              <folding>
+                <element signature="e#25#61#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -142,6 +145,7 @@
       <find>has_login</find>
       <find>redir</find>
       <find>HttpResponseRedirect</find>
+      <find>HttpResponse</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -167,8 +171,9 @@
         <option value="$PROJECT_DIR$/Demo/Controller/homeController.py" />
         <option value="$PROJECT_DIR$/Demo/Controller/HomeController.py" />
         <option value="$PROJECT_DIR$/Demo/urls.py" />
-        <option value="$PROJECT_DIR$/Demo/Model/Auth.py" />
+        <option value="$PROJECT_DIR$/TestModel/modelOprate.py" />
         <option value="$PROJECT_DIR$/TestModel/dbModels.py" />
+        <option value="$PROJECT_DIR$/Demo/Model/Auth.py" />
         <option value="$PROJECT_DIR$/Demo/Controller/LoginController.py" />
       </list>
     </option>
@@ -632,11 +637,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/TestModel/modelOprate.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-158" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/TestModel/apps.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="95">
@@ -655,16 +655,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="133">
           <caret line="7" column="6" selection-start-line="7" selection-start-column="6" selection-end-line="7" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Demo/Model/Auth.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret line="3" lean-forward="true" selection-start-line="3" selection-end-line="3" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -690,13 +680,6 @@
             <element signature="e#0#27#0" expanded="true" />
             <element signature="e#1087#2894#0" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/django/contrib/admin/sites.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="190">
-          <caret line="10" column="43" lean-forward="true" selection-start-line="10" selection-start-column="43" selection-end-line="10" selection-end-column="43" />
         </state>
       </provider>
     </entry>
@@ -727,6 +710,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/django/contrib/admin/sites.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4066">
+          <caret line="214" column="39" selection-start-line="214" selection-start-column="27" selection-end-line="214" selection-end-column="39" />
+          <folding>
+            <element signature="e#0#36#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Demo/Controller/HomeController.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="194">
@@ -739,15 +732,35 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/TestModel/dbModels.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-10">
-          <caret line="9" column="47" lean-forward="true" selection-start-line="9" selection-start-column="47" selection-end-line="9" selection-end-column="47" />
+        <state relative-caret-position="191">
+          <caret line="29" column="52" lean-forward="true" selection-start-line="29" selection-start-column="52" selection-end-line="29" selection-end-column="52" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/TestModel/modelOprate.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="20" column="8" selection-start-line="20" selection-start-column="8" selection-end-line="27" selection-end-column="38" />
+          <folding>
+            <element signature="e#25#61#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Demo/Model/Auth.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="289">
+          <caret line="21" column="34" selection-start-line="21" selection-start-column="34" selection-end-line="21" selection-end-column="34" />
+          <folding>
+            <element signature="e#0#37#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Demo/Controller/LoginController.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="251">
-          <caret line="21" lean-forward="true" selection-start-line="21" selection-end-line="21" />
+        <state relative-caret-position="266">
+          <caret line="17" column="52" selection-start-line="17" selection-start-column="52" selection-end-line="17" selection-end-column="52" />
           <folding>
             <element signature="e#0#51#0" expanded="true" />
           </folding>

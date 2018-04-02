@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login
 from django.urls import path
-from django.http import HttpResponseRedirect
-
+from django.http import HttpResponseRedirect, HttpResponse
+from Demo.Model.Auth import Auth
 
 class LoginController:
 
@@ -14,7 +14,9 @@ class LoginController:
 
     def login(self, request):
         if request.user is not None:
-            return HttpResponseRedirect('/admin/index/')
+            auth = Auth(request.user)
+            return HttpResponse(auth.publish_plan_id)
+            #return HttpResponseRedirect('/admin/index/')
 
         if request.method == 'GET':
             if 'next_page' in request.GET:
