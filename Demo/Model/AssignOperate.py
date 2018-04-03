@@ -16,8 +16,9 @@ class AssignOperate:
     def assign(self, staff_obj, publish_obj):
         if self.has_assigned():
             self.un_assign()
-        assign = AssignVersion(staff_id=staff_obj.id, staff_name=staff_obj.name, status=True, plan_id=publish_obj.id,
-                               end_date=publish_obj.id)
+        assign = AssignVersion(staff_id=staff_obj.id, staff_name=staff_obj.name, status=True,
+                               plan_id=publish_obj.id,end_date=publish_obj.plan_end_date)
+        assign.save()
 
     def un_assign(self):
         self.assignObj.status = False

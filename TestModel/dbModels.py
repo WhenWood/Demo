@@ -51,6 +51,19 @@ class AssignVersion(models.Model):
     publish_plan_id = models.IntegerField(10)
     start_date = models.DateField(auto_now_add=True)
     end_date = models.DateField()
-    status = models.BooleanField(False)
+    status = models.BooleanField(default=False)
+    create_time = models.DateField(auto_now_add=True)
+    update_time = models.DateField(auto_now=True)
+
+
+class SystemVersion(models.Model):
+    sys_id = models.IntegerField(default=0)
+    sys_name = models.CharField(max_length=500)
+    version = models.CharField(max_length=25)
+    status = models.BooleanField(default=False)
+    plan_start_date = models.DateField()
+    actual_start_date = models.DateField()
+    plan_end_date = models.DateField()
+    actual_end_date = models.DateField()
     create_time = models.DateField(auto_now_add=True)
     update_time = models.DateField(auto_now=True)

@@ -17,7 +17,6 @@ class LoginController:
         if request.user is not None:
             auth = Auth(request.user)
             return HttpResponse(auth.publish_plan_id)
-            #return HttpResponseRedirect('/admin/index/')
 
         if request.method == 'GET':
             if 'next_page' in request.GET:

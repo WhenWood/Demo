@@ -24,19 +24,5 @@ class StaffOperate:
         staff = Staff.objects.filer(name)
         if staff:
             self.staffObj = staff[0]
-        assgin = AssignVersion()
+        return staff
 
-    def staff_assign(self, plan_id):
-        pass
-
-    def has_assigned(self):
-        return self.assignObj is None or self.assignObj.status
-
-    def assign(self, plan_id):
-        if self.has_assigned():
-            self.un_assign()
-        assign = AssignVersion()
-
-    def un_assign(self):
-        self.assignObj.status = False
-        self.assignObj.save(update_fields=['status'])
