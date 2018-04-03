@@ -1,4 +1,6 @@
 from django.utils.version import get_version
+import pymysql
+pymysql.install_as_MySQLdb()
 
 VERSION = (2, 0, 3, 'final', 0)
 
