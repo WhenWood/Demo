@@ -11,7 +11,7 @@ class Auth:
 
     def __init__(self, staff_name='admin'):
 
-        staff = Staff.objects.filter(id=1)
+        staff = Staff.objects.filter(name=staff_name)
 
         if not staff:
             self.isStaff = False

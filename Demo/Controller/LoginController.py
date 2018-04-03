@@ -3,6 +3,7 @@ from django.urls import path
 from django.http import HttpResponseRedirect, HttpResponse
 from Demo.Model.Auth import Auth
 
+
 class LoginController:
 
     next_page = ''
@@ -39,6 +40,11 @@ class LoginController:
             else:
                 pass
         # 返回登录失败页面。
+
+    def reg(self, request):
+        username = request.POST['username']
+        password = request.POST['password']
+        confirm = request.POST['confirm']
 
 
 controller = LoginController()
