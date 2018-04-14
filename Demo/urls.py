@@ -19,5 +19,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('home/', include('Demo.Controller.HomeController')),
     path('login/', include('Demo.Controller.LoginController')),
-    path('assign', include())
+    #path('assign', include())
+    path('manage/', include('Demo.Controller.ManageController')),
 ]

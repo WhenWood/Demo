@@ -29,5 +29,5 @@ controller = HomeController()
 urlpatterns = [
     path('', controller.index, name='index'),
     path('home/', controller.home, name='home'),
-    path('index/', controller.index, name='index')
+    path('index/', controller.index, name='index'),
 ]

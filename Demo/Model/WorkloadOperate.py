@@ -1,4 +1,4 @@
-from TestModel.dbModels import AssignVersion, Staff, PublishPlan
+#from TestModel.dbModels import Staff
 from TestModel.dbModels import Workload
 import datetime
 import calendar
@@ -55,3 +55,7 @@ class WorkloadOperate:
         workload = Workload.objects.filter(version_name=version_name, day_off=False,
                                            date__range=(self.first_day, self.last_day))
         return workload
+
+a = WorkloadOperate('2018',4)
+print(a.last_day)
+

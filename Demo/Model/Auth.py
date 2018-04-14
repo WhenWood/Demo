@@ -1,5 +1,5 @@
 from Demo.Constant import authContant
-from TestModel.dbModels import Staff,Requirement
+from TestModel.dbModels import Staff
 from django.http import HttpResponseRedirect, HttpResponse
 
 class Auth:
