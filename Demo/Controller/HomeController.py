@@ -6,7 +6,7 @@ from django.urls import path
 class HomeController:
     request = ''
 
-    def __init__(self,name='test'):
+    def __init__(self, name='test'):
         self.request = name
 
     def home(self, request):
@@ -29,5 +29,5 @@ controller = HomeController()
 urlpatterns = [
     path('', controller.index, name='index'),
     path('home/', controller.home, name='home'),
-    path('index/', controller.index, name='index')
+    path('index/', controller.index, name='index'),
 ]

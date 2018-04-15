@@ -395,6 +395,9 @@ class AdminSite:
             'template_name': self.login_template or 'admin/login.html',
         }
         request.current_app = self.name
+        if 'next' in request.GET and request.user.is_authenticated:
+            next = request.GET['next']
+            return HttpResponseRedirect(next)
         return LoginView.as_view(**defaults)(request)
 
     def _build_app_dict(self, request, label=None):

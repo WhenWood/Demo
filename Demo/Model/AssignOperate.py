@@ -1,27 +1,13 @@
-from TestModel.dbModels import AssignVersion, Staff, PublishPlan
+from TestModel.dbModels import AssignActionRecord
 
 
 class AssignOperate:
 
-    assignObj = ''
+    def create_record(self, staff_name, version_name, operator):
+        assign_record = AssignActionRecord(staff_name=staff_name, status=True, operator=operator,
+                                           version_plan_name=version_name)
+        assign_record.save()
 
-    def __init__(self, staff_obj):
-        assign = AssignVersion.objects.filter(staff_id=staff_obj.id, status=True)
-        self.assignObj = assign
-        self.staffObj = staff_obj
-
-    def has_assigned(self):
-        return self.assignObj is None or self.assignObj.status
-
-    def assign(self, staff_obj, publish_obj):
-        if self.has_assigned():
-            self.un_assign()
-        assign = AssignVersion(staff_id=staff_obj.id, staff_name=staff_obj.name, status=True,
-                               plan_id=publish_obj.id,end_date=publish_obj.plan_end_date)
-        assign.save()
-
-    def un_assign(self):
-        self.assignObj.status = False
-        self.assignObj.save(update_fields=['status'])
-
-
+    def disable_record(self, version_name, staff_names, operator):
+        AssignActionRecord.objects.filter(version_name=version_name, status=True).extra(
+            where=['staff_name IN (' + staff_names + ')']).update(status=False, disable_operator=operator)

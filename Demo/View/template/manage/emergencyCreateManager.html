@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <p>添加管理员, 多个管理员请用英文逗号,分割</p>
+    <p>{{title}}</p>
+    <form action="/manage/add_manger/" method="post" id="manage-form">
+        {% csrf_token %}
+  <div class="form-row">
+
+    <label class="required" for="id_username">Username:</label> <input type="text" name="user_names" autofocus="" maxlength="254" required="" id="id_username">
+  </div>
+  <div class="submit-row">
+    <label>&nbsp;</label><input type="submit" value="创建管理员">
+  </div>
+</form>
+</head>
+<body>
+
+</body>
+</html>
