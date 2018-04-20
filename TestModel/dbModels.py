@@ -45,8 +45,8 @@ class StagePlan(models.Model):
     stage = models.CharField(max_length=50)
     actual_start_date = models.DateField(null=True)
     actual_end_date = models.DateField(null=True)
-    plan_start_date = models.DateField(null=True)
-    plan_end_date = models.DateField(null=True)
+    plan_start_date = models.DateField()
+    plan_end_date = models.DateField()
     plan_workload = models.FloatField()
     used_workload = models.FloatField()
 

@@ -7,41 +7,71 @@ class PlanOperate:
     stage_plans = ''
     user = ''
     plan_exist = False
-    plan_var_list = ['version_name', 'plan_workload', 'actual_workload']
-    stage_var_list = ['stage', 'plan_start_time', 'actual_start_time',
-                      'plan_end_time', 'actual_end_time', 'plan_workload', 'actual_workload']
+    plan_var_list = ['version_name', 'plan_workload', 'used_workload']
+    stage_var_list = ['stage', 'plan_start_date', 'actual_start_date',
+                      'plan_end_date', 'actual_end_date', 'plan_workload', 'used_workload']
 
-    def __init__(self, user, plan_id=''):
+    def __init__(self, user, version=''):
         self.user = user
-        if plan_id:
-            version_plan = VersionPlan.objects.filter(id=plan_id, status=True).order_by('-update_time')
-            if version_plan:
-                self.plan_exist = True
-                stage_plans = version_plan.version_plan_stage_plan.all()
-                self.version_plan = version_plan[0]
-                self.stage_plans = stage_plans
+        if isinstance(version, VersionPlan):
+            self.version_plan = version
+            self.stage_plans = self.version_plan.version_plan_stage_plan.all()
+        else:
+            self.get_plan_operate_by_version_obj(version)
 
-    def get_plan_operate_by_version_obj(self, version_plan_obj):
-        self.version_plan = version_plan_obj
-        self.stage_plans = version_plan_obj.version_plan_stage_plan.all()
+    def get_plan_operate_by_version_obj(self, name):
+        if self.version_plan == '' or self.version_plan.version_name != name:
+            version_plan_obj = VersionPlan.objects.filter(version_name=name, status=True).order_by('-update_time')
+            self.version_plan = version_plan_obj[0]
+            self.stage_plans = self.version_plan.version_plan_stage_plan.all()
+
+    def version_active_exist(self):
+        return self.version_plan != ''
+
+    def get_all_active_plan(cls):
+        return VersionPlan.objects.filter(status=True).order_by('-update_time')
 
     def create(self, version_info, stage_infos):
+        self.suspend_plan(version_info['version_name'])
         self.create_version_plan(version_info)
         self.create_stage_plan(stage_infos)
         self.plan_exist = True
 
-    def update(self, version_info, stage_infos):
+    def update_all(self, version_info, stage_infos):
         if self.plan_exist:
+            self.suspend_plan()
             invalid_version_plan = self.version_plan
-            self.version_plan.status = False
             self.create(version_info, stage_infos)
             self.update_assign_staff(invalid_version_plan)
         else:
             self.create(version_info, stage_infos)
 
-    def suspend_plan(self, plan_name):
-        plan = VersionPlan.objects.filter(version_name=plan_name, status=True)
-        plan.update(status=False)
+    def update_versoion(self, version_info):
+        for var in self.plan_var_list:
+            if var in version_info:
+                self.version_plan.__dict__[var] = version_info[var]
+        self.version_plan.save()
+
+    def update_stage(self, stage_infos):
+        for stage in stage_infos:
+            stage_plan = self.stage_plans.get(stage=stage)
+            stage_info = stage_infos[stage]
+            if not stage_plan:
+                stage_plan = StagePlan()
+                stage_plan.version_plan = self.version_plan
+            for var in self.stage_var_list:
+                if var in stage_info:
+                    stage_plan.__dict__[var] = stage_info[var]
+            stage_plan.save()
+        self.stage_plans = self.version_plan.version_plan_stage_plan.all()
+
+    def suspend_plan(self, plan_name=''):
+        if plan_name == '' and self.version_plan:
+            self.version_plan.status=False
+            self.version_plan.save()
+        elif plan_name != '':
+            plan = VersionPlan.objects.filter(version_name=plan_name, status=True)
+            plan.update(status=False)
 
     def create_version_plan(self, version_info):
         version_plan = VersionPlan()
@@ -49,12 +79,13 @@ class PlanOperate:
             if var in version_info:
                 version_plan.__dict__[var] = version_info[var]
         version_plan.status = True
+        version_plan.operator = self.user.username
         version_plan.save()
         self.version_plan = version_plan
 
     def create_stage_plan(self, stage_infos):
         for stage in stage_infos:
-            stage_plan = StagePlan(stage=stage)
+            stage_plan = StagePlan()
             stage_info = stage_infos[stage]
             for var in self.stage_var_list:
                 if var in stage_info:
