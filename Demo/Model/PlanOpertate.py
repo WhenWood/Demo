@@ -16,13 +16,15 @@ class PlanOperate:
         if isinstance(version, VersionPlan):
             self.version_plan = version
             self.stage_plans = self.version_plan.version_plan_stage_plan.all()
-        else:
-            self.get_plan_operate_by_version_obj(version)
+        elif version != '':
+            self.get_plan_operate_by_version_name(version)
 
-    def get_plan_operate_by_version_obj(self, name):
+    def get_plan_operate_by_version_name(self, name):
         if self.version_plan == '' or self.version_plan.version_name != name:
             version_plan_obj = VersionPlan.objects.filter(version_name=name, status=True).order_by('-update_time')
-            self.version_plan = version_plan_obj[0]
+            if version_plan_obj:
+                self.version_plan = version_plan_obj[0]
+        if self.version_plan:
             self.stage_plans = self.version_plan.version_plan_stage_plan.all()
 
     def version_active_exist(self):
@@ -78,21 +80,26 @@ class PlanOperate:
         for var in self.plan_var_list:
             if var in version_info:
                 version_plan.__dict__[var] = version_info[var]
+        is_exist = VersionPlan.objects.filter(version_name=version_info['version_name'], status=True)
+        if is_exist:
+            return '版本已经存在'
         version_plan.status = True
         version_plan.operator = self.user.username
         version_plan.save()
         self.version_plan = version_plan
+        return 0
 
     def create_stage_plan(self, stage_infos):
         for stage in stage_infos:
             stage_plan = StagePlan()
             stage_info = stage_infos[stage]
             for var in self.stage_var_list:
-                if var in stage_info:
+                if var in stage_info and stage_info[var] != '':
                     stage_plan.__dict__[var] = stage_info[var]
             stage_plan.version_plan = self.version_plan
             stage_plan.save()
         self.stage_plans = self.version_plan.version_plan_stage_plan.all()
+        return 0
 
     def update_assign_staff(self, invalid_version_plan):
         staffs = invalid_version_plan.assign_staffs

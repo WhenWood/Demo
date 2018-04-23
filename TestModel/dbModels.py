@@ -36,7 +36,7 @@ class VersionPlan(models.Model):
     complete_time = models.DateTimeField(auto_now=True)
     operator = models.CharField(max_length=20)
     plan_workload = models.FloatField()
-    used_workload = models.FloatField()
+    used_workload = models.FloatField(null=True)
     assign_staffs = models.ManyToManyField(Staff, related_name='staff_version_plan')
 
 
@@ -48,7 +48,7 @@ class StagePlan(models.Model):
     plan_start_date = models.DateField()
     plan_end_date = models.DateField()
     plan_workload = models.FloatField()
-    used_workload = models.FloatField()
+    used_workload = models.FloatField(null=True)
 
 
 class AssignActionRecord(models.Model):

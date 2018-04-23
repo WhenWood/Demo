@@ -1,0 +1,103 @@
+{% extends "../header.html"%}
+{% block static_file %}
+<script>
+    function add_stage(){
+        var container = $('#stage_table')
+        version_name = $('input[name=version_name]').val()
+        stage_id = "stage_form_" + $('form.stage').length
+        container.append('<div class="form-container">'
+            + '<form class="stage" method="post" id="' +stage_id+ '">' + "{% csrf_token %}"
+            + '<input name="version_name" type="text" value="' +version_name+ '" hidden>'
+            + '<input name="action" value="add_stage" hidden>'
+            + '<div>阶段名称：<input name="stage" type="text">'
+            + '</div><div>计划开始时间：<input name="plan_start_date" type="date">'
+            + '</div><div>计划结束时间：<input name="plan_end_date" type="date">'
+            + '</div><div>实际开始时间：<input name="actual_start_date" type="date" value="">'
+            + '</div><div>实际结束时间：<input name="actual_end_date" type="date" value="">'
+            + '</div><div>计划工作量：<input name="plan_workload" type="number" value="">'
+            + '</div><div>实际工作量：<input name="actual_workload" type="number" value=""></form>'
+            + '<input type="button" class="update_stage" onclick=update_stage("#' + stage_id + '") value="更新"></div>')
+    }
+
+    function update_stage(stage_id){
+        $.ajax({
+                url:'add_stage',
+                data:$(stage_id).serialize(),
+                type:'post',
+                success:function(msg){
+                    if(msg==0){
+                        alert('阶段添加成功');
+                        console.log('添加成功');
+                        $('#stage').show()
+                    }else{
+                        alert(msg);
+                        console.log('添加失败')
+                    }
+                }
+            });
+    }
+     window.onload = function(){
+        var version = $('#version')
+        if (version.length == 0) alert('请先新建版本后在创建轮次');
+        $('#stage').on('click', add_stage)
+        $('#create_version').on('click', function(){
+            $.ajax({
+                url:'add',
+                data:$('#version_form').serialize(),
+                type:'post',
+                success:function(msg){
+                    if(msg==0){
+                        alert('版本添加成功');
+                        console.log('添加成功');
+                        $('#stage').show()
+                    }else{
+                        alert('版本已经存在，新增失败');
+                        console.log('添加失败')
+                    }
+                }
+            });
+        })
+    }
+</script>
+{% endblock %}
+{% block body_content %}
+{% for i in stage %}
+<p>i</p>
+{% endfor %}
+<div id="container">
+    <h2 class="ui dividing header"> 新增版本计划</h2>
+    <div class="file-box">
+        <form action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input name="action" value="upload_file" hidden>
+            <label>上传文件</label>
+            <input type="file" name="version_file" class="file" id="fileField" size="28" />
+            <input type="submit" name="submit" class="btn" value="上传" />
+        </form>
+
+    </div>
+    <h2></h2>
+    <div id="version" class="form-container">
+        <form action="" method="post" id="version_form">
+            {% csrf_token %}
+            <input name="action" value="add_version" hidden>
+            <div class="">
+                <label for="version_name">版本名称</label>
+                <input name="version_name" type="text">
+            </div>
+            <div class="">
+                <label for="plan_workload">计划工作量</label>
+                <input name="plan_workload" type="number">
+            </div>
+            <div>
+                <label for="used_workload">实际工作量</label>
+                <input name="used_workload" type="number" value="">
+            </div>
+            <button type="button" id="create_version" >新增版本计划</button>
+        </form>
+        <button id="stage" class="" hidden>新增阶段</button>
+        <div id="stage_table">
+        </div>
+    </div>
+</div>
+{%endblock%}
