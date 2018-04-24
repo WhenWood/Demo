@@ -2,47 +2,23 @@
 
 {% block static_file %}
 <script>
-    function add_stage_change(){
+    function remove_stage(){
         var tr =$(this).closest("tr");
-        arr_tr = tr.find('td');
-        version_name = $('#version_name').val();
-        data = {
-            'action':'add_stage',
-            'version_name': version_name,
-            'version_plan_workload':version_plan_workload,
-            'stage': arr_tr[0],
-            'plan_start_date':arr_tr[1],
-            'plan_end_date':arr_tr[2],
-            'plan_work_load':arr_tr[3],
-            'csrfmiddlewaretoken': '{{ csrf_token }}'
-        }
-        $.ajax({
-            url:'edit',
-            data:data ,
-            type:'post',
-            success:function(msg){
-                if(msg==0){
-                    alert('版本计划更新成功');
-                    console.log('更新成功');
-                }else{
-                    alert(msg);
-                    console.log('更新失败')
-                }
-            }
-        });
+        tr.remove();
     }
 
     function edit_all(){
         version_name = $('#version_name').val();
         version_plan_workload = $('#version_plan_workload').val();
+        version_used_workload = $('#version_used_workload').val();
         info = $('tr.stage_info');
         stage_infos = [];
         for (var index=0;index<info.length;++index){
             stage_info = {
-                'stage' : $(info.find('td')[0]).text(),
-                'plan_start_date' : $(info.find('td input')[1]).val(),
-                'plan_end_date' : $(info.find('td input')[2]).val(),
-                'plan_work_load' : $(info.find('td input')[3]).val(),
+                'stage' : $($(info[index]).find('td input')[0]).val(),
+                'plan_start_date' : $($(info[index]).find('td input')[1]).val(),
+                'plan_end_date' : $($(info[index]).find('td input')[2]).val(),
+                'plan_workload' : $($(info[index]).find('td input')[3]).val(),
             }
             stage_infos.push(stage_info);
         }
@@ -51,14 +27,17 @@
             'action': 'edit_all',
             'version_name': version_name,
             'version_plan_workload':version_plan_workload,
+            'version_used_workload':version_used_workload,
             'stage_infos': JSON.stringify(stage_infos),
             'csrfmiddlewaretoken': '{{ csrf_token }}',
         }
+
         $.ajax({
             url:'edit',
             data:data,
             type:'post',
             success:function(msg){
+
                 if(msg==0){
                     alert('版本计划更新成功');
                     console.log('更新成功');
@@ -70,8 +49,40 @@
         });
     }
 
+    function add_stage(){
+        html = '<tr class="stage_info">'
+                +'<td><input type="text" required></td>'
+                +'<td><input type="date" ></td>'
+                +'<td><input type="date" ></td>'
+                +'<td><input type="number" value=""></td>'
+                +'<td><input type="date" value=""></td>'
+                +'<td><input type="date" value=""></td>'
+                +'<td><input type="number" value=""></td>'
+                +'<td><button type="button" class="cancel">删除阶段</button></td>'
+            +'</tr>';
+        $('tbody').append(html);
+        $('button.cancel').on('click', remove_stage);
+    }
+
+    function suspend_plan() {
+        version_name = $('#version_name').val();
+        $.ajax({
+             url:'edit',
+            data:{'version_name':version_name, 'action':'suspend',
+            'csrfmiddlewaretoken': '{{ csrf_token }}'},
+            type:'post',
+            success:function(msg){
+                if(msg==0)alert("计划终止");
+                else alert("计划终止出错")
+            }
+        });
+    }
+
     window.onload = function(){
         $('#edit_confirm').on('click', edit_all);
+        $('button.delete').on('click', remove_stage);
+        $('#add_stage').on('click', add_stage);
+        $('#suspend').on('click', suspend_plan);
     }
 
 
@@ -83,8 +94,12 @@
 
 <div class="container">
     <h2 class="ui dividing header"> {{version_info.version_name}} 版本计划修改</h2>
+    <div><button type="button" id="suspend">终止计划</button></div>
+
     <input id="version_name" value="{{version_info.version_name}}" hidden>
     <div><label>计划工作量</label><input id="version_plan_workload" type="number" value="{{version_info.plan_workload}}"></div>
+    <div><label>实际工作量</label><input id="version_used_workload" type="number" value="{{version_info.used_workload}}"></div>
+
     <div class="table_container">
     <table class="ui celled table">
         <thead>
@@ -92,6 +107,7 @@
                 <th rowspan="2">阶段</th>
                 <th colspan="3">计划</th>
                 <th colspan="3">实际</th>
+                <th rowspan="2">操作</th>
             </tr>
             <tr>
                 <th>计划开始时间</th>
@@ -105,18 +121,20 @@
         <tbody>
         {% for stage in stage_info %}
             <tr class="stage_info">
-                <td>{{stage.stage}}</td>
+                <td><input type="text" value="{{stage.stage}}" ></td>
                 <td><input type="date" value="{{stage.plan_start_date|date:'Y-m-d'}}"></td>
                 <td><input type="date" value="{{stage.plan_end_date|date:'Y-m-d'}}"></td>
                 <td><input type="number" value="{{stage.plan_workload}}"></td>
-                <td><input type="date" value="{{stage.actual_start_date|date:'Y-m-d'}}" readonly></td>
-                <td><input type="date" value="{{stage.actual_end_date|date:'Y-m-d'}}" readonly></td>
-                <td><input type="number" value="{{stage.used_workload}}" readonly></td>
+                <td><input type="date" value="{{stage.actual_start_date|date:'Y-m-d'}}"></td>
+                <td><input type="date" value="{{stage.actual_end_date|date:'Y-m-d'}}"></td>
+                <td><input type="number" value="{{stage.used_workload}}"></td>
+                <td><button type="button" class="delete" >删除</button></td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
-        <button type="button" id="edit_confirm">提交修改</button>
+        <button type="button" id="add_stage">新增阶段</button>
+        <button type="button" id="edit_confirm">修改计划</button>
     </div>
 
 </div>

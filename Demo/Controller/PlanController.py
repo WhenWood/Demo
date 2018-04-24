@@ -24,8 +24,10 @@ class PlanController:
                 view_type = request.GET['type']
             else:
                 view_type = 'list'
-
-            versions = VersionPlan.objects.filter(status=True).order_by('-update_time')
+            search = ''
+            if 'search' in request.GET:
+                search = request.GET['search']
+            versions = VersionPlan.objects.filter(status=True, version_name__icontains=search).order_by('-update_time')
             version_infos = []
             for version in versions:
                 plan = PlanOperate(request.user, version)
@@ -58,26 +60,32 @@ class PlanController:
 
     def table_view(self, request):
         start_date = ''
+        days = 30
+        search = ''
         if 'start_date' in request.GET:
             start_date = request.GET['start_date']
-        date_list = self.get_thirty_days(start_date)
-        versions = VersionPlan.objects.filter(status=True)
+        if 'days' in request.GET:
+            days = request.GET['days']
+        if 'search' in request.GET:
+            search = request.GET['search']
+        date_list = self.get_days(start_date, days)
+        versions = VersionPlan.objects.filter(status=True, version_name__icontains=search)
         version_infos = []
         for version in versions:
-            stage_obj_plan = ['' for i in range(0, 30)]
-            stage_obj_actual = ['' for i in range(0, 30)]
+            stage_obj_plan = ['' for i in range(0, days)]
+            stage_obj_actual = ['' for i in range(0, days)]
             plan = PlanOperate(request.user, version)
             for stage in plan.stage_plans:
                 if stage.plan_start_date > date_list[-1] or \
                         stage.plan_end_date < date_list[0]:
                     continue
                 start_pos = max(0, (stage.plan_start_date-date_list[0]).days)
-                end_pos = min(30, (stage.plan_end_date-date_list[-1]).days)
+                end_pos = min(days, (stage.plan_end_date-date_list[-1]).days)
                 stage_obj_plan[start_pos:end_pos] = [i + ' ' + stage.stage for i in stage_obj_plan[start_pos:end_pos]]
                 if stage.actual_start_date:
                     start_pos = max(0, (stage.actual_start_date-date_list[0]).days)
                     if stage.actual_end_date:
-                        end_pos = min(30, (stage.actual_end_date-date_list[-1]).days)
+                        end_pos = min(days, (stage.actual_end_date-date_list[-1]).days)
                     else:
                         end_pos = start_pos
                     stage_obj_actual[start_pos:end_pos] = [i + ' ' + stage.stage for i in stage_obj_actual[start_pos:end_pos]]
@@ -97,14 +105,18 @@ class PlanController:
         })
         return TemplateResponse(request, 'plan/table.html', context)
 
-    def get_thirty_days(self, date_str=''):
+    def version_change(self, request):
+        self.get_days()
+
+
+    def get_days(self, date_str='',days=30):
         if date_str == '':
             start_date = datetime.datetime.now().date()
         else:
             start_date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-        end_date = datetime.timedelta(days=+30)+start_date
+        end_date = datetime.timedelta(days=+days)+start_date
         dateList = []
-        for i in range(0, 30):
+        for i in range(0, days):
             dateList.append(start_date+datetime.timedelta(days=+i))
         return dateList
 
@@ -201,14 +213,24 @@ class PlanController:
             if not 'version_name'in request.POST:
                 return HttpResponse("版本不存在")
             version_name = request.POST['version_name']
-            version_info=dict(
-                version_name=request.POST['version_name'],
-                plan_workload=request.POST['version_plan_workload'],
-            )
+
             plan=PlanOperate(request.user, version_name)
             if request.POST['action'] == 'edit_all':
-                stage_infos = request.POST.getlist('stage_infos')
-                plan.update_all(version_info,stage_infos)
+                used_workload = request.POST['version_used_workload']
+                if used_workload == 'None':
+                    used_workload = None
+                version_info = dict(
+                    version_name=request.POST['version_name'],
+                    plan_workload=request.POST['version_plan_workload'],
+                    used_workload=used_workload,
+                )
+                stage_infos = request.POST.getlist('stage_infos')[0]
+                import json
+                Arr = json.loads(stage_infos)
+                plan.update_all(version_info, Arr)
+                return HttpResponse(0)
+            if request.POST['action'] == 'suspend':
+                plan.suspend_plan()
                 return HttpResponse(0)
 
         else:
@@ -223,9 +245,25 @@ class PlanController:
                     'stage_info': stage_arr,
                 })
                 return TemplateResponse(request, 'plan/edit.html', context)
+            return HttpResponse("未找到Active的版本计划")
 
     def history(self, request):
-        pass
+        if request.method == 'POST':
+            pass
+        else:
+            version_name = request.GET.get('version_name')
+            search = request.GET.get('search')
+            if version_name:
+                versions = VersionPlan.objects.all().order_by('-update_time')
+                plan_obj = []
+                for version in versions:
+                    plan = PlanOperate(request.user, version)
+
+            else:
+                version_activ = VersionPlan.objects.filter(status=True, version_name__icontains=search).order_by('-update_time')
+                version_disable = versions = VersionPlan.objects.filter(status=False, version_name__icontains=search).order_by('-update_time')
+
+            pass
 
 controller = PlanController()
 urlpatterns = [
