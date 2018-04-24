@@ -124,16 +124,35 @@ class PlanController:
             elif request.POST['action'] == 'add_stage':
                 return self.add_stage(request)
             elif request.POST['action'] == 'upload_file':
-                f = request.FILES['version_file']
+                if not 'version_file' in request.FILES:
+                    return HttpResponse('错误未上传文件')
+                file_obj = request.FILES['version_file']
                 import time, xlrd
-                name = str(time.strftime('%Y%m%d%H%M%S'))
-                with open('/static/file/'+name+'.xls', 'wb+') as destination:
-                    for chunk in f.chunks():
-                        destination.write(chunk)
-                book = xlrd.open_workbook('/Demo/static/file/'+name+'.xls')
-                sheet1 = book.sheet_by_index(0)
 
-                return HttpResponse(sheet1.cell_value(1,1))
+                wb = xlrd.open_workbook(filename=None, file_contents=file_obj.read())
+                sheet1 = wb.sheets()[0]
+                version_name = sheet1.cell_value(0, 0)
+                start_rows = 1
+                row_count = sheet1.nrows
+                version_info={'version_name': version_name, 'plan_workload': sheet1.cell_value(0, 3)}
+                stage_objs = []
+                for row in range(start_rows, row_count):
+                    stage = sheet1.cell_value(row, 0)
+                    plan_start_date = sheet1.cell_value(row, 1)
+                    plan_end_date = sheet1.cell_value(row, 2)
+                    plan_workload = sheet1.cell_value(row, 3)
+                    if isinstance(plan_start_date, float):
+                        plan_start_date = datetime.datetime(*xlrd.xldate_as_tuple(plan_start_date, 0))
+                    if isinstance(plan_end_date, float):
+                        plan_end_date = datetime.datetime(*xlrd.xldate_as_tuple(plan_end_date, 0))
+                    if not isinstance(plan_workload, float):
+                        plan_workload = float(plan_workload)
+                    stage_objs.append(dict(stage=stage, plan_start_date=plan_start_date,
+                                           plan_end_date=plan_end_date, plan_workload=plan_workload))
+
+                plan.create(version_info,stage_objs)
+                context = dict(version=version_info,stage=stage_objs)
+                return TemplateResponse(request, 'plan/upload.html', context)
         else:
             context = dict(
                 user=request.user,
@@ -157,9 +176,9 @@ class PlanController:
             return HttpResponse(str(e))
 
     def update(self, request):
-        plan = PlanOperate(request.user)
-        plan.get_plan_operate_by_version_obj('Version 1.0')
 
+        version_name = request.GET['version_name']
+        plan = PlanOperate(request.user, version_name)
         if not plan.stage_plans:
             return HttpResponse('000000000')
         str1 = ''
@@ -179,16 +198,31 @@ class PlanController:
 
     def edit(self, request):
         if request.method == 'POST':
-            pass
+            if not 'version_name'in request.POST:
+                return HttpResponse("版本不存在")
+            version_name = request.POST['version_name']
+            version_info=dict(
+                version_name=request.POST['version_name'],
+                plan_workload=request.POST['version_plan_workload'],
+            )
+            plan=PlanOperate(request.user, version_name)
+            if request.POST['action'] == 'edit_all':
+                stage_infos = request.POST.getlist('stage_infos')
+                plan.update_all(version_info,stage_infos)
+                return HttpResponse(0)
+
         else:
             if 'version_name' in request.GET:
                 version_name = request.GET['version_name']
                 plan = PlanOperate(request.user, version_name)
+                stage_arr = []
+                for stage in plan.stage_plans:
+                    stage_arr.append(stage)
                 context = dict({
-                    'version': plan.version_plan,
-                    'stages': plan.stage_plans,
+                    'version_info': plan.version_plan,
+                    'stage_info': stage_arr,
                 })
-                return TemplateResponse(request, 'plan/table.html', context)
+                return TemplateResponse(request, 'plan/edit.html', context)
 
     def history(self, request):
         pass

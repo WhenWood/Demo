@@ -1,0 +1,37 @@
+{% extends "../header.html"%}
+
+{% block body_content %}
+<div class="container">
+    <h2 class="ui dividing header"> {{version_info.version_name}}</h2>
+    <div> <label>计划工作量</label><span>{{version_info.plan_workload}}</span></div>
+        <div class="file-box">
+        <form action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input name="action" value="upload_file" hidden>
+            <label>继续上传文件</label>
+            <input type="file" name="version_file" class="file" id="fileField" size="28" />
+            <input type="submit" name="submit" class="btn" value="上传" />
+        </form>
+    </div>
+    <table class="ui celled table">
+        <thead>
+            <tr>
+                <th>阶段</th>
+                <th>计划开始时间</th>
+                <th>计划结束时间</th>
+                <th>计划工作量</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for stage_info in stage %}
+            <tr>
+                <td>{{stage_info.stage}}</td>
+                <td>{{stage_info.plan_start_date|date:"Y/m/d"}}</td>
+                <td>{{stage_info.plan_end_date|date:"Y/m/d"}}</td>
+                <td>{{stage_info.plan_workload}}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{%endblock%}

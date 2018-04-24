@@ -27,14 +27,14 @@
             <tr>
                 {% if version_info.row %}
                     <td rowspan="{{version_info.row}}">
-                        <a href="{{version_info.site}}" >version_info.name</a>
+                        <a href="{{version_info.site}}" >{{version_info.name}}</a>
                     </td>
                     {% for stage in version_info.stage %}
                         <td>{{stage.stage}}</td>
-                        <td>{{stage.actual_start_date|date:"Y-m-d"}}</td>
-                        <td>{{stage.actual_end_date|date:"Y-m-d"}}</td>
                         <td>{{stage.plan_start_date|date:"Y-m-d"}}</td>
+                        <td>{{stage.actual_start_date|date:"Y-m-d"}}</td>
                         <td>{{stage.plan_end_date|date:"Y-m-d"}}</td>
+                        <td>{{stage.actual_end_date|date:"Y-m-d"}}</td>
                         <td>{{stage.plan_workload}}</td>
                         <td>{{stage.used_workload}}</td>
             </tr>

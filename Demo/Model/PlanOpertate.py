@@ -6,7 +6,6 @@ class PlanOperate:
     version_plan = ''
     stage_plans = ''
     user = ''
-    plan_exist = False
     plan_var_list = ['version_name', 'plan_workload', 'used_workload']
     stage_var_list = ['stage', 'plan_start_date', 'actual_start_date',
                       'plan_end_date', 'actual_end_date', 'plan_workload', 'used_workload']
@@ -37,10 +36,14 @@ class PlanOperate:
         self.suspend_plan(version_info['version_name'])
         self.create_version_plan(version_info)
         self.create_stage_plan(stage_infos)
-        self.plan_exist = True
 
     def update_all(self, version_info, stage_infos):
-        if self.plan_exist:
+        if self.version_plan:
+            version = self.version_plan
+        else:
+            self.get_plan_operate_by_version_name(version_info['version_name'])
+            version = self.version_plan
+        if not version:
             self.suspend_plan()
             invalid_version_plan = self.version_plan
             self.create(version_info, stage_infos)
@@ -92,7 +95,7 @@ class PlanOperate:
     def create_stage_plan(self, stage_infos):
         for stage in stage_infos:
             stage_plan = StagePlan()
-            stage_info = stage_infos[stage]
+            stage_info = stage
             for var in self.stage_var_list:
                 if var in stage_info and stage_info[var] != '':
                     stage_plan.__dict__[var] = stage_info[var]
