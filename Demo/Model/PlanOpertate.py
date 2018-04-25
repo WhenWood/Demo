@@ -1,6 +1,7 @@
 from TestModel.dbModels import VersionPlan, StagePlan, Staff
 from Demo.Model.AssignOperate import AssignOperate
 from Demo.Constant import authContant
+import datetime
 
 class PlanOperate:
     version_plan = ''
@@ -127,5 +128,31 @@ class PlanOperate:
         self.version_plan.save()
         assign_operate = AssignOperate()
         assign_operate.disable_record(staff.name, self.version_plan.id, self.user.username)
+
+    def get_stage(self):
+        if not self.stage_plans:
+            return {'error': '计划阶段不存在'}
+        stage_proceed = self.stage_plans.filter(actual_end_date=None).exclude(actual_start_date=None)
+        if stage_proceed:
+            stage_plan = stage_proceed[0]
+
+            return dict(
+                error=0,
+                stage_status='proceeding',
+                stage=stage_plan.stage,
+                used_days=(datetime.datetime.now().date-stage_plan.actual_start_plan).days,
+                left_days=(stage_plan.plan_end_date-datetime.datetime.now().date()).days,
+            )
+        stage_waiting = self.stage_plans.filter(actual_start_date=None).order_by("plan_start_date")
+        if stage_waiting:
+            stage_plan = stage_waiting[0]
+            return dict(
+                error=0,
+                stage_status='waiting',
+                stage=stage_plan.stage,
+                till_days=(stage_plan.plan_start_date-datetime.datetime.now().date).days,
+            )
+        return {'error': '版本计划中所有阶段均已结束，请终止计划，或修改计划'}
+
 
 

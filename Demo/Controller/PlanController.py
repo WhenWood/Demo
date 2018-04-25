@@ -247,23 +247,63 @@ class PlanController:
                 return TemplateResponse(request, 'plan/edit.html', context)
             return HttpResponse("未找到Active的版本计划")
 
+
     def history(self, request):
         if request.method == 'POST':
             pass
         else:
             version_name = request.GET.get('version_name')
             search = request.GET.get('search')
+            view_type = request.GET.get('view_type')
+            if not view_type:
+                view_type = 'list'
             if version_name:
                 versions = VersionPlan.objects.all().order_by('-update_time')
-                plan_obj = []
+                version_info = []
+                order = 0
                 for version in versions:
+                    order = order + 1
                     plan = PlanOperate(request.user, version)
+                    stage_obj = []
+                    for stage in plan.stage_plans:
+                        stage_obj.append(dict(
+                            stage=stage.stage,
+                            plan_start_date=stage.plan_start_date,
+                            plan_end_date=stage.plan_end_date,
+                            plan_workload=stage.plan_workload,
+                            used_workload=stage.used_workload,
+                        ))
+
+                    version_info.append({
+                        'order': order,
+                        'create_date': version.create_time,
+                        'stage': stage_obj,
+                        'row': len(stage_obj)
+                    })
+                context = dict({
+                    'version_info': version_info,
+                    'type': view_type,
+                    'types': [{'site': 'history?type=list&version_name='+version_name, 'name': "列表模式"},
+                              {'site': 'history?type=table&version_name='+version_name, 'name': "表格模式"}],
+                })
+                return TemplateResponse(request, 'plan/history.html', context)
+
 
             else:
-                version_activ = VersionPlan.objects.filter(status=True, version_name__icontains=search).order_by('-update_time')
-                version_disable = versions = VersionPlan.objects.filter(status=False, version_name__icontains=search).order_by('-update_time')
+                version_active = VersionPlan.objects.filter(status=True, version_name__icontains=search).order_by('-update_time')
+                version_disable = VersionPlan.objects.filter(status=False, version_name__icontains=search).order_by('-update_time')
 
-            pass
+                active_version_arr = []
+                disable_version_arr = []
+                for active in version_active:
+                    active_version_arr.append(active.version_name)
+                for disable in version_disable:
+                    disable_version_arr.append(disable.version_name)
+                context = dict(
+                    active_version=active_version_arr,
+                    disable_version=disable_version_arr
+                )
+                return TemplateResponse(request, 'plan/version_list.html', context)
 
 controller = PlanController()
 urlpatterns = [

@@ -1,0 +1,43 @@
+{% extends "../header.html"%}
+
+{% block body_content %}
+
+<div class="container">
+    <h2 class="ui dividing header"> 筛选版本</h2>
+    <div class="table_container">
+    <table class="ui celled table">
+        <thead>
+            <tr>
+                <th>有效版本计划 </th>
+                <th>终止版本计划 </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    {% for version in active_version%}
+                        <span>
+                            <a href="history?version_name={{version.version_name}}">
+                                {{version.version_name}}
+                            </a>
+                        </span>
+                    {% endfor %}
+                </td>
+                    {% for version in disable_version%}
+                        <span>
+
+                            <a href="history?version_name={{version.version_name}}">
+                                {{version.version_name}}
+                            </a>
+                        </span>
+                    {% endfor %}
+                <td>
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+</div>
+{%endblock%}
+

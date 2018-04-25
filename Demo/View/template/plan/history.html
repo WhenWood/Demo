@@ -3,7 +3,7 @@
 {% block body_content %}
 
 <div class="container">
-    <h2 class="ui dividing header"> 版本计划</h2>
+    <h2 class="ui dividing header"> 版本历史</h2>
     {%for type in types%}
     <a href="{{type.site}}"><span>{{type.name}}</span></a>
     {% endfor %}
@@ -14,6 +14,7 @@
             <tr>
                 <th>序号 </th>
                 <th>修改时间 </th>
+                <th>阶段</th>
                 <th>计划开始时间 </th>
                 <th>计划结束时间 </th>
                 <th>计划工作量 </th>
@@ -24,19 +25,28 @@
             <tr>
                 {% if version_info.row %}
                     <td rowspan="{{version_info.row}}">
-                        <a href="{{version_info.site}}" >{{version_info.name}}</a>
+                        {{version_info.order}}
+                    </td>
+                    <td rowspan="{{version_info.row}}">
+                        {{version_info.create_time|date"Y-m-d"}}
                     </td>
                     {% for stage in version_info.stage %}
                         <td>{{stage.stage}}</td>
                         <td>{{stage.plan_start_date|date:"Y-m-d"}}</td>
-                        <td>{{stage.actual_start_date|date:"Y-m-d"}}</td>
                         <td>{{stage.plan_end_date|date:"Y-m-d"}}</td>
-                        <td>{{stage.actual_end_date|date:"Y-m-d"}}</td>
                         <td>{{stage.plan_workload}}</td>
-                        <td>{{stage.used_workload}}</td>
             </tr>
             <tr>
                     {% endfor %}
+                {% else %}
+                    <td>{{version_info.order}}</td>
+                    <td> {{version_info.create_time|date"Y-m-d"}}</td>
+                    <td>/</td>
+                    <td>/</td>
+                    <td>/</td>
+                    <td>/</td>
+            </tr>
+            <tr>
                 {% endif %}
             </tr>
         {% endfor %}

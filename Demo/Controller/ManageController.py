@@ -4,6 +4,8 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.template.response import TemplateResponse
 from Demo.Model.Auth import Auth
 from Demo.Model.StaffOperate import StaffOperate
+from TestModel.dbModels import Staff, VersionPlan
+from Demo.Model.PlanOpertate import PlanOperate
 from Demo.Constant import authContant
 from django.contrib.auth.models import User
 
@@ -113,11 +115,66 @@ class ManageController:
             )
             return TemplateResponse(request, 'manage/changePassword.html', context)
 
+    def staff_status(self, request):
+        if self.has_permission(request.user):
+            unassigned_staffs = Staff.objects.filter(status=authContant.AUTH_STATUS_UNASSIGNED)
+            versions = VersionPlan.objects.filter(status=True)
+            version_staff = []
+            for version in versions:
+                plan_obj = PlanOperate(self.user, version)
+                staffs = version.assign_staff.all()
+                staff_info = [staff.name for staff in staffs]
+                version_staff.append(dict(
+                    stage_info=plan_obj.get_stage(),
+                    staff_info=staff_info,
+                    version_name=version.version_name,
+                    plan_workload=version.plan_workload,
+                ))
+            unassigned_staff =[staff.name for staff in unassigned_staffs]
+            context = dict(
+                version_staff=version_staff,
+                unassigned_staff=unassigned_staff,
+            )
+            return TemplateResponse(request, 'manage/staff_status.html', context)
+        else:
+            return self.my_page(request)
+
+    def my_page(self, request):
+        if self.user == '':
+            self.user = request.user
+            self.staff = self.user.user_staff.all()[0]
+        my_version = self.staff.staff_version_plan.filter(status=True)
+        if not my_version:
+            return self.free_work()
+        else:
+            version_info = []
+            staff_self = request.user.user_staff.all()[0]
+            for version in my_version:
+                plan = PlanOperate(request.user, version)
+                staffs = version.assign_staff.filter(status=True).exclude(self)
+                staff_info = [staff.name for staff in staffs]
+                version_info.append(dict(
+                    staff_info=staff_info,
+                    stage_info=plan.get_stage(),
+                    version_name=version.version_name,
+                ))
+            context = dict(
+                version_info=version_info,
+                staff_self=staff_self,
+            )
+            return TemplateResponse(request, 'manage/my_page.html', context)
+
+    def free_work(self):
+        return HttpResponse("今日空闲")
+
+    def get_all_version(self, requst):
+        pass
 
 controller = ManageController()
 urlpatterns = [
     path('',controller.index),
     path('add_user/', controller.add_user),
     path('add_manager/', controller.add_manager),
-    path('change_password/', controller.change_password)
+    path('change_password/', controller.change_password),
+    path('staff/', controller.staff_status),
 ]
