@@ -131,14 +131,14 @@ class PlanOperate:
 
     def get_stage(self):
         if not self.stage_plans:
-            return {'error': '计划阶段不存在'}
+            return {'error': -1, 'stage_status': '计划阶段不存在'}
         stage_proceed = self.stage_plans.filter(actual_end_date=None).exclude(actual_start_date=None)
         if stage_proceed:
             stage_plan = stage_proceed[0]
 
             return dict(
                 error=0,
-                stage_status='proceeding',
+                stage_status=stage_plan.stage + '阶段正在进行中',
                 stage=stage_plan.stage,
                 used_days=(datetime.datetime.now().date-stage_plan.actual_start_plan).days,
                 left_days=(stage_plan.plan_end_date-datetime.datetime.now().date()).days,
@@ -147,12 +147,13 @@ class PlanOperate:
         if stage_waiting:
             stage_plan = stage_waiting[0]
             return dict(
-                error=0,
-                stage_status='waiting',
+                error=1,
+                stage_status=stage_plan.stage +'阶段尚未开始',
                 stage=stage_plan.stage,
-                till_days=(stage_plan.plan_start_date-datetime.datetime.now().date).days,
+                used_days=0,
+                left_days=(stage_plan.plan_start_date-datetime.datetime.now().date).days,
             )
-        return {'error': '版本计划中所有阶段均已结束，请终止计划，或修改计划'}
+        return {'error': -1, 'stage_status': '版本计划中所有阶段均已结束，请终止计划，或修改计划'}
 
 
 

@@ -241,11 +241,12 @@ class PlanController:
                 for stage in plan.stage_plans:
                     stage_arr.append(stage)
                 context = dict({
+                    'version_name': version_name,
                     'version_info': plan.version_plan,
                     'stage_info': stage_arr,
                 })
                 return TemplateResponse(request, 'plan/edit.html', context)
-            return HttpResponse("未找到Active的版本计划")
+            return HttpResponseRedirect('/version_plan/index')
 
 
     def history(self, request):
@@ -259,7 +260,7 @@ class PlanController:
                 view_type = 'list'
             if version_name:
                 versions = VersionPlan.objects.all().order_by('-update_time')
-                version_info = []
+                version_infos = []
                 order = 0
                 for version in versions:
                     order = order + 1
@@ -274,20 +275,22 @@ class PlanController:
                             used_workload=stage.used_workload,
                         ))
 
-                    version_info.append({
+                    version_infos.append({
                         'order': order,
+                        'operator':version.operator,
                         'create_date': version.create_time,
                         'stage': stage_obj,
                         'row': len(stage_obj)
                     })
                 context = dict({
-                    'version_info': version_info,
+                    'version_name': version_name,
+                    'version_infos': version_infos,
                     'type': view_type,
                     'types': [{'site': 'history?type=list&version_name='+version_name, 'name': "列表模式"},
                               {'site': 'history?type=table&version_name='+version_name, 'name': "表格模式"}],
                 })
-                return TemplateResponse(request, 'plan/history.html', context)
 
+                return TemplateResponse(request, 'plan/history.html', context)
 
             else:
                 version_active = VersionPlan.objects.filter(status=True, version_name__icontains=search).order_by('-update_time')

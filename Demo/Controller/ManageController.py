@@ -130,8 +130,9 @@ class ManageController:
                     version_name=version.version_name,
                     plan_workload=version.plan_workload,
                 ))
-            unassigned_staff =[staff.name for staff in unassigned_staffs]
+            unassigned_staff = [staff.name for staff in unassigned_staffs]
             context = dict(
+                version_row=len(version_staff),
                 version_staff=version_staff,
                 unassigned_staff=unassigned_staff,
             )
@@ -167,8 +168,9 @@ class ManageController:
     def free_work(self):
         return HttpResponse("今日空闲")
 
-    def get_all_version(self, requst):
+    def get_all_version(self, request):
         pass
+
 
 controller = ManageController()
 urlpatterns = [
