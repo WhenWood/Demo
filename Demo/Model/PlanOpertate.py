@@ -140,7 +140,7 @@ class PlanOperate:
                 error=0,
                 stage_status=stage_plan.stage + '阶段正在进行中',
                 stage=stage_plan.stage,
-                used_days=(datetime.datetime.now().date-stage_plan.actual_start_plan).days,
+                used_days=(datetime.datetime.now().date()-stage_plan.actual_start_plan).days,
                 left_days=(stage_plan.plan_end_date-datetime.datetime.now().date()).days,
             )
         stage_waiting = self.stage_plans.filter(actual_start_date=None).order_by("plan_start_date")
@@ -151,7 +151,7 @@ class PlanOperate:
                 stage_status=stage_plan.stage +'阶段尚未开始',
                 stage=stage_plan.stage,
                 used_days=0,
-                left_days=(stage_plan.plan_start_date-datetime.datetime.now().date).days,
+                left_days=(stage_plan.plan_start_date-datetime.datetime.now().date()).days,
             )
         return {'error': -1, 'stage_status': '版本计划中所有阶段均已结束，请终止计划，或修改计划'}
 

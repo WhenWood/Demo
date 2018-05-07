@@ -20,14 +20,14 @@
             <tbody>
                 {% for info in version_staff %}
                     <tr>
-                        <td>{{version_name}}</td>
-                        <td>{{stage_info.stage_status}}
-                            {% if stage_info.error != -1 %}
-                                剩余时间为{{stage_info.left_days}}天
+                        <td>{{info.version_name}}</td>
+                        <td>{{info.stage_info.stage_status}}
+                            {% if info.stage_info.error != -1 %}
+                                剩余时间为{{info.stage_info.left_days}}天
                             {% endif %}
                         </td>
                         <td>
-                        {% for staff in staff_info %}
+                        {% for staff in info.staff_info %}
                             <span class="assigned active">{{staff}}</span>
                         {% endfor %}
                         </td>
@@ -35,7 +35,7 @@
                 {% endfor %}
                 <tr><td class="unassigned_staff" colspan="3">
                     {% for staff in unassigned_staff %}
-                        <span class="assigned">{{staff}}</span>
+                        <span class="unassigned">{{staff}}</span>
                     {% endfor %}
                 </td></tr>
             </tbody>

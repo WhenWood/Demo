@@ -122,7 +122,7 @@ class ManageController:
             version_staff = []
             for version in versions:
                 plan_obj = PlanOperate(self.user, version)
-                staffs = version.assign_staff.all()
+                staffs = version.assign_staffs.all()
                 staff_info = [staff.name for staff in staffs]
                 version_staff.append(dict(
                     stage_info=plan_obj.get_stage(),
@@ -143,6 +143,7 @@ class ManageController:
     def my_page(self, request):
         if self.user == '':
             self.user = request.user
+        if self.staff == '':
             self.staff = self.user.user_staff.all()[0]
         my_version = self.staff.staff_version_plan.filter(status=True)
         if not my_version:
