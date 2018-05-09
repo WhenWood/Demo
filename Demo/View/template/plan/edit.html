@@ -28,9 +28,11 @@
                 'plan_end_date' : $($(info[index]).find('td input')[2]).val(),
                 'plan_workload' : $($(info[index]).find('td input')[3]).val(),
             }
-            if(stage_info['plan_start_date'] && !stage_info['plan_start_date'] && !stage_info['plan_start_date'])
+            if(stage_info['plan_start_date'] && stage_info['plan_start_date'] && stage_info['plan_start_date']) {
                 stage_infos.push(stage_info);
-                alert(stage_info['stage'] + "更新失败，计划时间和工作量为填写完整")
+            } else {
+                alert(stage_info['stage'] + "更新失败，计划时间或工作量未填写完整")
+            }
         }
 
         data = {
@@ -105,6 +107,9 @@
 <div class="container">
     <h2 class="ui dividing header"> {{version_info.version_name}} 版本计划修改</h2>
     <div><button type="button" id="suspend">终止计划</button></div>
+    <div>
+        <a href="history?version_name={{version_info.version_name}}"> 版本修改历史</a>
+    </div>
 
     <input id="version_name" value="{{version_name}}" hidden>
     <div><label>计划工作量</label><input id="version_plan_workload" type="number" value="{{version_info.plan_workload}}"></div>

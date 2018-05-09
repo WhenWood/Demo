@@ -129,7 +129,7 @@ class PlanController:
                 version_info = {}
                 version_info['version_name'] = request.POST['version_name']
                 version_info['plan_workload'] = float(request.POST['plan_workload'])
-                if request.POST['used_workload']:
+                if request.POST['used_workload'] and request.POST['user_workload'] != 'None':
                     version_info['used_workload'] = float(request.POST['used_workload'])
                 msg = plan.create_version_plan(version_info)
                 return HttpResponse(msg)
@@ -214,7 +214,7 @@ class PlanController:
                 return HttpResponse("版本不存在")
             version_name = request.POST['version_name']
 
-            plan=PlanOperate(request.user, version_name)
+            plan = PlanOperate(request.user, version_name)
             if request.POST['action'] == 'edit_all':
                 used_workload = request.POST['version_used_workload']
                 if used_workload == 'None':
@@ -247,7 +247,6 @@ class PlanController:
                 })
                 return TemplateResponse(request, 'plan/edit.html', context)
             return HttpResponseRedirect('/version_plan/index')
-
 
     def history(self, request):
         if request.method == 'POST':

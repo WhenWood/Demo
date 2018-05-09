@@ -53,10 +53,13 @@ class PlanOperate:
             self.create(version_info, stage_infos)
 
     def update_versoion(self, version_info):
-        for var in self.plan_var_list:
-            if var in version_info:
-                self.version_plan.__dict__[var] = version_info[var]
-        self.version_plan.save()
+        version_plan = self.version_plan
+        version_plan.version_name = version_info['version_name']
+        if ('plan_workload' in version_plan) and version_plan['plan_workload']:
+            version_plan.plan_workload = float(version_plan['plan_workload'])
+        if ('used_workload' in version_plan) and version_plan['used_workload']:
+            version_plan.plan_workload = float(version_plan['used_workload'])
+        version_plan.save()
 
     def update_stage(self, stage_infos):
         for stage in stage_infos:
@@ -81,12 +84,14 @@ class PlanOperate:
 
     def create_version_plan(self, version_info):
         version_plan = VersionPlan()
-        for var in self.plan_var_list:
-            if var in version_info:
-                version_plan.__dict__[var] = version_info[var]
         is_exist = VersionPlan.objects.filter(version_name=version_info['version_name'], status=True)
         if is_exist:
             return '版本已经存在'
+        version_plan.version_name = version_info['version_name']
+        if ('plan_workload' in version_info) and version_info['plan_workload']:
+            version_plan.plan_workload = float(version_info['plan_workload'])
+        if ('used_workload' in version_info) and version_info['used_workload']:
+            version_plan.plan_workload = float(version_info['used_workload'])
         version_plan.status = True
         version_plan.operator = self.user.username
         version_plan.save()
@@ -113,21 +118,25 @@ class PlanOperate:
         invalid_version_plan.save()
         self.version_plan.save()
 
-    def add_staff_to_plan(self, staff_names):
-        staffs = Staff.objects.extra(where=['name IN (' + staff_names + ')'])
+    def add_staff_to_plan(self, staff_name):
+        staffs = Staff.objects.filter(name=staff_name)
         for staff in staffs:
             self.version_plan.assign_staffs.add(staff)
             assign_operate = AssignOperate()
-            assign_operate.create_record(staff.name, self.version_plan.id, self.version_plan.name, self.user.username)
+            assign_operate.create_record(staff.name, self.version_plan.version_name, self.user.username)
+            staff.status = authContant.AUTH_STATUS_ASSIGNED
+            staff.save()
         self.version_plan.save()
 
-    def remove_staff_to_plan(self, staff_names):
-        staffs = Staff.objects.extra(where=['name IN (' + staff_names + ')'])
+    def remove_staff_to_plan(self, staff_name):
+        staffs = Staff.objects.filter(name=staff_name)
         for staff in staffs:
             self.version_plan.assign_staffs.remove(staff)
+            assign_operate = AssignOperate()
+            assign_operate.disable_record(staff.name, self.version_plan.version_name, self.user.username)
+            staff.status = authContant.AUTH_STATUS_UNASSIGNED
+            staff.save()
         self.version_plan.save()
-        assign_operate = AssignOperate()
-        assign_operate.disable_record(staff.name, self.version_plan.id, self.user.username)
 
     def get_stage(self):
         if not self.stage_plans:

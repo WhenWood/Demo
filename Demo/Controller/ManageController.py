@@ -43,6 +43,8 @@ class ManageController:
         if request.user.is_superuser:
             link = {'site': '/manage/add_manager/', 'name': '新增管理员'}
             links.append(link)
+        if self.has_permission(request.user):
+            links.append({'site': '/manage/staff/', 'name': '人员管理'})
         links.append({'site': '/admin/logout/', 'name': '退出登录'})
         context = dict(
             links=links,
@@ -116,6 +118,9 @@ class ManageController:
             return TemplateResponse(request, 'manage/changePassword.html', context)
 
     def staff_status(self, request):
+        if not request.user.is_authenticated:
+            return HttpResponseRedirect('%s?next=%s' % ('/admin/login/?next=', request.path))
+
         if self.has_permission(request.user):
             unassigned_staffs = Staff.objects.filter(status=authContant.AUTH_STATUS_UNASSIGNED)
             versions = VersionPlan.objects.filter(status=True)
@@ -172,6 +177,27 @@ class ManageController:
     def get_all_version(self, request):
         pass
 
+    def assign(self, request):
+        if request.method == 'POST':
+            version_name = request.POST.get('version_name')
+            staff_name = request.POST.get('staff_name')
+            if (not version_name) or (not staff_name):
+                return HttpResponse('fail')
+            plan = PlanOperate(request.user, version_name)
+            plan.add_staff_to_plan(staff_name)
+            return HttpResponse('success')
+        return HttpResponse('fail')
+
+    def unassign(self, request):
+        if request.method == 'POST':
+            version_name = request.POST.get('version_name')
+            staff_name = request.POST.get('staff_name')
+            if (not version_name) or (not staff_name):
+                return HttpResponse('111')
+            plan = PlanOperate(request.user, version_name)
+            plan.remove_staff_to_plan(staff_name)
+            return HttpResponse('success')
+        return HttpResponse('fail')
 
 controller = ManageController()
 urlpatterns = [
@@ -180,4 +206,7 @@ urlpatterns = [
     path('add_manager/', controller.add_manager),
     path('change_password/', controller.change_password),
     path('staff/', controller.staff_status),
+    path('assign/', controller.assign),
+    path('unassign/', controller.unassign),
+
 ]
