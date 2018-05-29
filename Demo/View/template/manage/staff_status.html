@@ -1,11 +1,30 @@
 {% extends "../header.html"%}
 {% block static_file %}
+<style>
+.model {
+    display: none; /* 默认隐藏 */
+    position: fixed; /* 固定定位 */
+    z-index: 1; /* 设置在顶层 */
+    left: 0;
+    top: 0;
+    width: 30%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,1);
+    color:rgb(255,255,255);
+}
+.name {
+    width:120px;
+    float:left;
+    cursor:pointer;
+}
 
+</style>
 {% endblock %}
 {% block body_content %}
 
 <div class="container">
-
+        <div id="myModel" class="model"></div>
         <table class="ui celled table">
             <thead>
             <tr>
@@ -25,15 +44,20 @@
                         </td>
                         <td>
                         {% for staff in info.staff_info %}
-                            <span class="assigned" version="{{info.version_name}}" title="{{staff}}">
-                                {{staff}}</span>
+                            <div class="name">
+                            <a class="assigned" version="{{info.version_name}}" title="{{staff}}">
+                                {{staff}}</a>
+                            </div>
                         {% endfor %}
                         </td>
                     </tr>
                 {% endfor %}
                 <tr><td class="unassigned_staff" colspan="3">
+
                     {% for staff in unassigned_staff %}
-                        <span class="unassigned" title="{{staff}}">{{staff}}</span>
+                        <div class="name">
+                        <a class="unassigned" title="{{staff}}">{{staff}}</a>
+                        </div>
                     {% endfor %}
                 </td></tr>
             </tbody>
@@ -90,10 +114,10 @@
 
     }
 
-    $('span.unassigned').on('click', function(){
+    $('a.unassigned').on('click', function(){
         staff_name = $(this).attr('title');
-        html = "<div class='container'>"+
-            "<span onclick=$(this).parent().hide()>取消</span>"+
+        html = "<div>"+
+            "<span onclick=$('#myModel').hide()>取消</span>"+
         "<div>"
                 +"<ul>"
                 {% for info in version_staff %}
@@ -101,10 +125,12 @@
                      +"{{info.version_name}}</span></li>"
                 {% endfor %}
                 +"</ul></div></div>"
-        $(this).parent().append(html);
+        $("#myModel").children().remove();
+        $("#myModel").append(html);
+        $("#myModel").show();
     })
 
-    $('span.assigned').on('click', function(){
+    $('a.assigned').on('click', function(){
         version_name = $(this).attr('version');
         staff_name = $(this).attr('title');
         html =  "<div class='container'>"+

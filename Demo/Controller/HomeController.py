@@ -13,6 +13,10 @@ class HomeController:
         a = request.GET['test']
         return HttpResponse("tst" + str(a))
 
+    def workload(self, request):
+
+        pass
+
     def index(self, request, action="index"):
 
         context = dict(

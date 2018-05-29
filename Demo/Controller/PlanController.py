@@ -1,6 +1,6 @@
 from Demo.Model.PlanOpertate import PlanOperate
 from Demo.Model.StaffOperate import StaffOperate
-from TestModel.dbModels import VersionPlan
+from TestModel.dbModels import VersionPlan,Redmine_projects
 from django.urls import path
 from django.http import HttpResponseRedirect, HttpResponse
 from Demo.Model.Auth import Auth
@@ -128,6 +128,8 @@ class PlanController:
             if request.POST['action'] == 'add_version':
                 version_info = {}
                 version_info['version_name'] = request.POST['version_name']
+                version_info['sys_name'] = request.POST['sys_name']
+                version_info['sys_version'] = request.POST['sys_version']
                 version_info['plan_workload'] = float(request.POST['plan_workload'])
                 if request.POST['used_workload'] and request.POST['user_workload'] != 'None':
                     version_info['used_workload'] = float(request.POST['used_workload'])
@@ -143,24 +145,39 @@ class PlanController:
 
                 wb = xlrd.open_workbook(filename=None, file_contents=file_obj.read())
                 sheet1 = wb.sheets()[0]
-                version_name = sheet1.cell_value(0, 0)
+                version_name = sheet1.cell_value(1, 2)
+                sys_name = sheet1.cell_value(1,0)
+                sys_version = sheet1.cell_value(1,1)
                 start_rows = 1
                 row_count = sheet1.nrows
-                version_info={'version_name': version_name, 'plan_workload': sheet1.cell_value(0, 3)}
+                version_info={'version_name': version_name, 'sys_name':sys_name,'sys_version':sys_version,
+                              'plan_workload': sheet1.cell_value(1, 3)}
                 stage_objs = []
                 for row in range(start_rows, row_count):
-                    stage = sheet1.cell_value(row, 0)
-                    plan_start_date = sheet1.cell_value(row, 1)
-                    plan_end_date = sheet1.cell_value(row, 2)
-                    plan_workload = sheet1.cell_value(row, 3)
+                    stage = sheet1.cell_value(row, 4)
+                    plan_start_date = sheet1.cell_value(row, 5)
+                    plan_end_date = sheet1.cell_value(row, 6)
+                    plan_workload = sheet1.cell_value(row, 7)
+                    actual_start_date = sheet1.cell_value(row, 8)
+                    actual_end_date = sheet1.cell_value(row, 9)
+                    actual_workload = sheet1.cell_value(row, 10)
                     if isinstance(plan_start_date, float):
                         plan_start_date = datetime.datetime(*xlrd.xldate_as_tuple(plan_start_date, 0))
                     if isinstance(plan_end_date, float):
                         plan_end_date = datetime.datetime(*xlrd.xldate_as_tuple(plan_end_date, 0))
-                    if not isinstance(plan_workload, float):
+                    if not isinstance(plan_workload, float) and plan_workload != '':
                         plan_workload = float(plan_workload)
+                    if isinstance(actual_start_date, float):
+                        actual_start_date = datetime.datetime(*xlrd.xldate_as_tuple(actual_start_date, 0))
+                    if isinstance(actual_end_date, float):
+                        actual_end_date = datetime.datetime(*xlrd.xldate_as_tuple(actual_end_date, 0))
+                    if not isinstance(actual_workload, float) and actual_workload != '':
+                        actual_workload = float(actual_workload)
                     stage_objs.append(dict(stage=stage, plan_start_date=plan_start_date,
-                                           plan_end_date=plan_end_date, plan_workload=plan_workload))
+                                           plan_end_date=plan_end_date, plan_workload=plan_workload,
+                                           actual_start_date=actual_start_date, actual_end_date=actual_end_date,
+                                           actual_workload=actual_workload,
+                                           ))
 
                 plan.create(version_info,stage_objs)
                 context = dict(version=version_info,stage=stage_objs)
@@ -220,6 +237,8 @@ class PlanController:
                 if used_workload == 'None':
                     used_workload = None
                 version_info = dict(
+                    sys_name=request.POST['sys_name'],
+                    sys_version=request.POST['sys_version'],
                     version_name=request.POST['version_name'],
                     plan_workload=request.POST['version_plan_workload'],
                     used_workload=used_workload,
@@ -229,9 +248,19 @@ class PlanController:
                 Arr = json.loads(stage_infos)
                 plan.update_all(version_info, Arr)
                 return HttpResponse(0)
-            if request.POST['action'] == 'suspend':
+            elif request.POST['action'] == 'suspend':
                 plan.suspend_plan()
                 return HttpResponse(0)
+            elif request.POST['action'] == 'get_sys_version':
+                sys_name = request.POST['sys_name']
+                print(sys_name)
+                rp = Redmine_projects.objects.filter(sys_name=sys_name).values('version').distinct()
+                versions = []
+                for item in rp:
+                    print(item['version'])
+                    versions.append(item['version'])
+                import json
+                return HttpResponse(json.dumps(versions), content_type="application/json")
 
         else:
             if 'version_name' in request.GET:
@@ -240,9 +269,25 @@ class PlanController:
                 stage_arr = []
                 for stage in plan.stage_plans:
                     stage_arr.append(stage)
+
+                redmine_systems = Redmine_projects.objects.values('sys_name').distinct()
+                system_names = ['']
+                system_versions = ['']
+                for item in redmine_systems:
+                    system_names.append(item['sys_name'])
+
+                if isinstance(plan.version_plan, VersionPlan) and plan.version_plan.redmine_project:
+                    redmine_system_versions = Redmine_projects.objects\
+                        .filter(sys_name= plan.version_plan.redmine_project.sys_name).values('version').distinct()
+                    for item in redmine_system_versions:
+                        system_versions.append(item['version'])
+
                 context = dict({
                     'version_name': version_name,
                     'version_info': plan.version_plan,
+                    'redmine_info': plan.version_plan.redmine_project,
+                    'system_names':system_names,
+                    'system_versions':system_versions,
                     'stage_info': stage_arr,
                 })
                 return TemplateResponse(request, 'plan/edit.html', context)
@@ -254,11 +299,11 @@ class PlanController:
         else:
             version_name = request.GET.get('version_name')
             search = request.GET.get('search')
-            view_type = request.GET.get('view_type')
+            view_type = request.GET.get('type')
             if not view_type:
                 view_type = 'list'
             if version_name:
-                versions = VersionPlan.objects.all().order_by('-update_time')
+                versions = VersionPlan.objects.filter(version_name=version_name).order_by('-update_time')
                 version_infos = []
                 order = 0
                 for version in versions:
@@ -286,7 +331,8 @@ class PlanController:
                     'version_infos': version_infos,
                     'type': view_type,
                     'types': [{'site': 'history?type=list&version_name='+version_name, 'name': "列表模式"},
-                              {'site': 'history?type=table&version_name='+version_name, 'name': "表格模式"}],
+                              #{'site': 'history?type=table&version_name='+version_name, 'name': "表格模式"},
+                              ],
                 })
 
                 return TemplateResponse(request, 'plan/history.html', context)

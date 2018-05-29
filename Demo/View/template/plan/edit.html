@@ -11,6 +11,8 @@
         version_name = $('#version_name').val();
         version_plan_workload = $('#version_plan_workload').val();
         version_used_workload = $('#version_used_workload').val();
+        sys_name = $('#sys_name').val()
+        sys_version = $('#sys_version').val()
         if (!version_plan_workload) {
             alert('请输入计划的预期工作量');
             return;
@@ -27,6 +29,9 @@
                 'plan_start_date' : $($(info[index]).find('td input')[1]).val(),
                 'plan_end_date' : $($(info[index]).find('td input')[2]).val(),
                 'plan_workload' : $($(info[index]).find('td input')[3]).val(),
+                'actual_start_date' : $($(info[index]).find('td input')[4]).val(),
+                'actual_end_date' : $($(info[index]).find('td input')[5]).val(),
+                'actual_workload' : $($(info[index]).find('td input')[6]).val(),
             }
             if(stage_info['plan_start_date'] && stage_info['plan_start_date'] && stage_info['plan_start_date']) {
                 stage_infos.push(stage_info);
@@ -38,6 +43,8 @@
         data = {
             'action': 'edit_all',
             'version_name': version_name,
+            'sys_name':sys_name,
+            'sys_version':sys_version,
             'version_plan_workload':version_plan_workload,
             'version_used_workload':version_used_workload,
             'stage_infos': JSON.stringify(stage_infos),
@@ -90,11 +97,31 @@
         });
     }
 
+    function get_sys_version() {
+        version_name = $('#version_name').val();
+        $.ajax({
+             url:'edit',
+            data:{'version_name':version_name, 'action':'get_sys_version',
+            'sys_name':$('#sys_name').val(),
+            'csrfmiddlewaretoken': '{{ csrf_token }}'},
+            type:'post',
+            success:function(versions){
+                $("#sys_version").children().remove();
+                html = "";
+                for (version in versions) {
+                    html += "<option value='" + versions[version] + "'>" + versions[version] + "</option>";
+                }
+                $("#sys_version").append(html);
+            }
+        });
+    }
+
     window.onload = function(){
         $('#edit_confirm').on('click', edit_all);
         $('button.delete').on('click', remove_stage);
         $('#add_stage').on('click', add_stage);
         $('#suspend').on('click', suspend_plan);
+        $('#sys_name').on('change', get_sys_version);
     }
 
 
@@ -112,6 +139,30 @@
     </div>
 
     <input id="version_name" value="{{version_name}}" hidden>
+    <div>
+        <label>Redmine系统名称</label>
+        <select id="sys_name">
+            {% for sys_name in  system_names%}
+                {% if sys_name == redmine_info.sys_name %}
+                    <option value="{{sys_name}}" selected>{{sys_name}}</option>
+                {% else %}
+                    <option value="{{sys_name}}">{{sys_name}}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label>Redmine系统版本</label>
+        <select id="sys_version">
+            {% for sys_version in  system_versions%}
+                {% if sys_version == redmine_info.version %}
+                    <option value="{{sys_version}}" selected>{{sys_version}}</option>
+                {% else %}
+                    <option value="{{sys_version}}">{{sys_version}}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </div>
     <div><label>计划工作量</label><input id="version_plan_workload" type="number" value="{{version_info.plan_workload}}"></div>
     <div><label>实际工作量</label><input id="version_used_workload" type="number" value="{{version_info.used_workload}}"></div>
 

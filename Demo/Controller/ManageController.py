@@ -8,6 +8,7 @@ from TestModel.dbModels import Staff, VersionPlan
 from Demo.Model.PlanOpertate import PlanOperate
 from Demo.Constant import authContant
 from django.contrib.auth.models import User
+from TestModel.dbModels import redmine_users
 
 
 class ManageController:
@@ -199,6 +200,45 @@ class ManageController:
             return HttpResponse('success')
         return HttpResponse('fail')
 
+    def add_staff_to_group(self, staff_name, group_name):
+
+        pass
+
+    def add_system_to_group(self, staff_name, system):
+        pass
+
+    def hard_code(self, request):
+        hard_code_token = request.GET.get('hard_code_token')
+
+        if hard_code_token == "cfets":
+            hard_code = request.GET.get('hard_code')
+        else:
+            return HttpResponse("Invalid Command")
+        if hard_code == 'init_redmine_user':
+            try:
+                ru = redmine_users.objects.all()
+                for usr in ru:
+                    if usr.status != "1" or usr.login == '' or len(Staff.objects.filter(name=usr.login)) > 0:
+                        continue
+                    else:
+                        print ("init " + usr.login + "!")
+                        operator = StaffOperate(request.user)
+                        operator.create_staff(usr.login)
+                return HttpResponse("Init Redmine User Success!")
+            except Exception as e:
+                return HttpResponse("Init Redmine User Fail!" + str(e))
+        elif hard_code == 'testredmine':
+            from TestModel.dbModels import Redmine_projects
+            t = Redmine_projects.objects.values('sys_name','version').distinct()
+            xstr = ''
+            for item in t:
+                xstr += str(item['version'])
+                print(item)
+            return HttpResponse(xstr)
+        else:
+            return HttpResponse("Can not find Command")
+
+
 controller = ManageController()
 urlpatterns = [
     path('',controller.index),
@@ -208,5 +248,6 @@ urlpatterns = [
     path('staff/', controller.staff_status),
     path('assign/', controller.assign),
     path('unassign/', controller.unassign),
+    path('hard_code/', controller.hard_code),
 
 ]

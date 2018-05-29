@@ -4,7 +4,7 @@
 <div class="container">
     <h2 class="ui dividing header"> {{version_info.version_name}}</h2>
     <div> <label>计划工作量</label><span>{{version_info.plan_workload}}</span></div>
-        <div class="file-box">
+    <div class="file-box">
         <form action="" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input name="action" value="upload_file" hidden>
@@ -20,6 +20,9 @@
                 <th>计划开始时间</th>
                 <th>计划结束时间</th>
                 <th>计划工作量</th>
+                <th>实际开始时间</th>
+                <th>实际结束时间</th>
+                <th>实际工作量</th>
             </tr>
         </thead>
         <tbody>
@@ -29,6 +32,9 @@
                 <td>{{stage_info.plan_start_date|date:"Y/m/d"}}</td>
                 <td>{{stage_info.plan_end_date|date:"Y/m/d"}}</td>
                 <td>{{stage_info.plan_workload}}</td>
+                <td>{{stage_info.actual_start_date|date:"Y/m/d"}}</td>
+                <td>{{stage_info.actual_end_date|date:"Y/m/d"}}</td>
+                <td>{{stage_info.actual_workload}}</td>
             </tr>
         {% endfor %}
         </tbody>

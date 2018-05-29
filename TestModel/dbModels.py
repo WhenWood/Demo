@@ -5,6 +5,59 @@ from django.contrib.auth import models as authModel
 
 # Create your models here.
 
+class redmine_users(models.Model):
+    id = models.IntegerField(primary_key=True, unique=True,db_index=True)
+    login = models.CharField(max_length=100,null=True,blank=True)
+    HASHED_PASSWORD = models.CharField(max_length=100,null=100,blank=True)
+    FIRSTNAME = models.CharField(max_length=100,null=True,blank=True)
+    LASTNAME = models.CharField(max_length=100,null=True,blank=True)
+    MAIL = models.CharField(max_length=100,null=True,blank=True)
+    ADMIN = models.CharField(max_length=100,null=True,blank=True)
+    status = models.CharField(max_length=100,null=True,blank=True)
+    LAST_LOGIN_ON = models.DateTimeField(null=True,blank=True)
+    LANGUAGE = models.CharField(max_length=100,null=True,blank=True)
+    AUTH_SOURCE_ID = models.CharField(max_length=100,null=True,blank=True)
+    CREATED_ON = models.DateTimeField(null=True,blank=True)
+    UPDATED_ON = models.DateTimeField(null=True,blank=True)
+    TYPE = models.CharField(max_length=100,null=True,blank=True)
+    IDENTITY_URL = models.CharField(max_length=100,null=True,blank=True)
+    MAIL_NOTIFICATION = models.CharField(max_length=100,null=True,blank=True)
+    SALT = models.CharField(max_length=255,null=True,blank=True)
+    MUST_CHANGE_PASSWD = models.CharField(max_length=100,null=True,blank=True)
+    PASSWD_CHANGED_ON = models.CharField(max_length=100,null=True,blank=True)
+
+    class Meta:
+        db_table = "redmine_users"
+
+
+class Redmine_projects(models.Model):
+    id = models.IntegerField(primary_key=True,unique=True,db_index=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(null=True,blank=True)
+    homepage = models.TextField(null=True,blank=True)
+    is_public = models.IntegerField(null=True,blank=True)
+    parent_id = models.IntegerField(null=True,blank=True)
+    created_on = models.DateTimeField(null=True,blank=True)
+    updated_on = models.DateTimeField(null=True,blank=True)
+    identifier = models.TextField(null=True,blank=True)
+    status = models.IntegerField(null=True,blank=True)
+    lft = models.IntegerField(null=True,blank=True)
+    rgt = models.IntegerField(null=True,blank=True)
+    inherit_members = models.IntegerField(null=True,blank=True)
+    project_meeting_rooms = models.IntegerField(null=True,blank=True)
+    project_name_view = models.IntegerField(null=True,blank=True)
+    sys_name = models.CharField(max_length=255,null=True,blank=True)
+    version = models.CharField(max_length=255,null=True,blank=True)
+    plan_starttime = models.DateTimeField(null=True,blank=True)
+    plan_endtime = models.DateTimeField(null=True,blank=True)
+    starttime = models.DateTimeField(null=True,blank=True)
+    endtime = models.DateTimeField(null=True,blank=True)
+    othersys = models.TextField(null=True,blank=True)
+
+    class Meta:
+        db_table = "Redmine_projects"
+
+
 
 class Staff(models.Model):
     name = models.CharField(max_length=50)
@@ -35,9 +88,10 @@ class VersionPlan(models.Model):
     update_time = models.DateTimeField(auto_now=True)
     complete_time = models.DateTimeField(auto_now=True)
     operator = models.CharField(max_length=20)
-    plan_workload = models.FloatField()
+    plan_workload = models.FloatField(null=True)
     used_workload = models.FloatField(null=True)
     assign_staffs = models.ManyToManyField(Staff, related_name='staff_version_plan')
+    redmine_project = models.ForeignKey(Redmine_projects, null=True, related_name='redmine_project_version_plan', on_delete=models.CASCADE)
 
 
 class StagePlan(models.Model):
@@ -47,7 +101,7 @@ class StagePlan(models.Model):
     actual_end_date = models.DateField(null=True)
     plan_start_date = models.DateField()
     plan_end_date = models.DateField()
-    plan_workload = models.FloatField()
+    plan_workload = models.FloatField(null=True)
     used_workload = models.FloatField(null=True)
 
 
@@ -57,7 +111,18 @@ class AssignActionRecord(models.Model):
     status = models.BooleanField(default=False)
     operator = models.CharField(max_length=100)
     disable_operator = models.CharField(max_length=100)
-    version_plan_name = models.CharField(max_length=100)
     create_time = models.DateTimeField(auto_now_add=True)
 
+
+class StaffGroup(models.Model):
+    group_owner = models.CharField(max_length=100)
+    contains_staffs = models.ManyToManyField(Staff, related_name='staff_group')
+
+
+class SysGroup(models.Model):
+    pass
+
+
+class GroupAuth(models.Model):
+    pass
 

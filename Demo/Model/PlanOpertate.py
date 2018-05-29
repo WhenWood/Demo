@@ -1,6 +1,7 @@
 from TestModel.dbModels import VersionPlan, StagePlan, Staff
 from Demo.Model.AssignOperate import AssignOperate
 from Demo.Constant import authContant
+from TestModel.dbModels import Redmine_projects
 import datetime
 
 class PlanOperate:
@@ -94,6 +95,9 @@ class PlanOperate:
             version_plan.plan_workload = float(version_info['used_workload'])
         version_plan.status = True
         version_plan.operator = self.user.username
+        sys_name = version_info['sys_name']
+        sys_version = version_info['sys_version']
+        version_plan.redmine_project = Redmine_projects.objects.get(sys_name=sys_name, version=sys_version)
         version_plan.save()
         self.version_plan = version_plan
         return 0
@@ -149,7 +153,7 @@ class PlanOperate:
                 error=0,
                 stage_status=stage_plan.stage + '阶段正在进行中',
                 stage=stage_plan.stage,
-                used_days=(datetime.datetime.now().date()-stage_plan.actual_start_plan).days,
+                used_days=(datetime.datetime.now().date()-stage_plan.actual_start_date).days,
                 left_days=(stage_plan.plan_end_date-datetime.datetime.now().date()).days,
             )
         stage_waiting = self.stage_plans.filter(actual_start_date=None).order_by("plan_start_date")
