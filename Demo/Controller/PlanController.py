@@ -65,7 +65,7 @@ class PlanController:
         if 'start_date' in request.GET:
             start_date = request.GET['start_date']
         if 'days' in request.GET:
-            days = request.GET['days']
+            days = int(request.GET['days'])
         if 'search' in request.GET:
             search = request.GET['search']
         date_list = self.get_days(start_date, days)
@@ -75,12 +75,17 @@ class PlanController:
             stage_obj_plan = ['' for i in range(0, days)]
             stage_obj_actual = ['' for i in range(0, days)]
             plan = PlanOperate(request.user, version)
+            staffs = version.assign_staffs.all()
+            assign_staffs = []
+            for staff in staffs:
+                assign_staffs.append(staff.name)
+
             for stage in plan.stage_plans:
                 if stage.plan_start_date > date_list[-1] or \
                         stage.plan_end_date < date_list[0]:
                     continue
                 start_pos = max(0, (stage.plan_start_date-date_list[0]).days)
-                end_pos = min(days, (stage.plan_end_date-date_list[-1]).days)
+                end_pos = min(-1, (stage.plan_end_date-date_list[-1]).days)
                 stage_obj_plan[start_pos:end_pos] = [i + ' ' + stage.stage for i in stage_obj_plan[start_pos:end_pos]]
                 if stage.actual_start_date:
                     start_pos = max(0, (stage.actual_start_date-date_list[0]).days)
@@ -94,6 +99,7 @@ class PlanController:
                 'name': version.version_name,
                 'stage_plan': stage_obj_plan,
                 'stage_actual': stage_obj_actual,
+                'assign_staffs':assign_staffs,
                 'row': 2
             })
         context = dict({
@@ -114,7 +120,7 @@ class PlanController:
             start_date = datetime.datetime.now().date()
         else:
             start_date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-        end_date = datetime.timedelta(days=+days)+start_date
+        end_date = datetime.timedelta(days=+int(days))+start_date
         dateList = []
         for i in range(0, days):
             dateList.append(start_date+datetime.timedelta(days=+i))
@@ -253,11 +259,9 @@ class PlanController:
                 return HttpResponse(0)
             elif request.POST['action'] == 'get_sys_version':
                 sys_name = request.POST['sys_name']
-                print(sys_name)
                 rp = Redmine_projects.objects.filter(sys_name=sys_name).values('version').distinct()
                 versions = []
                 for item in rp:
-                    print(item['version'])
                     versions.append(item['version'])
                 import json
                 return HttpResponse(json.dumps(versions), content_type="application/json")

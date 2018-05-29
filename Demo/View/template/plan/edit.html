@@ -13,10 +13,6 @@
         version_used_workload = $('#version_used_workload').val();
         sys_name = $('#sys_name').val()
         sys_version = $('#sys_version').val()
-        if (!version_plan_workload) {
-            alert('请输入计划的预期工作量');
-            return;
-        }
         info = $('tr.stage_info');
         stage_infos = [];
         if (!info) {
@@ -91,7 +87,9 @@
             'csrfmiddlewaretoken': '{{ csrf_token }}'},
             type:'post',
             success:function(msg){
-                if(msg==0)alert("计划终止");
+                if(msg==0){
+                    alert("计划终止");
+                }
                 else alert("计划终止出错")
             }
         });

@@ -97,7 +97,9 @@ class PlanOperate:
         version_plan.operator = self.user.username
         sys_name = version_info['sys_name']
         sys_version = version_info['sys_version']
-        version_plan.redmine_project = Redmine_projects.objects.get(sys_name=sys_name, version=sys_version)
+        redmine_pr = Redmine_projects.objects.filter(sys_name=sys_name, version=sys_version).order_by('-created_on')
+        if len(redmine_pr):
+            version_plan.redmine_project = redmine_pr[0]
         version_plan.save()
         self.version_plan = version_plan
         return 0

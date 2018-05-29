@@ -4,6 +4,7 @@
 
 <div class="container">
     <h2 class="ui dividing header"> 版本计划</h2>
+    <div><button id="show_staff">展示版本人员</button><button id="hide_staff">隐藏版本人员</button></div>
     {%for type in types%}
     <a href="{{type.site}}"><span>{{type.name}}</span></a>
     {% endfor %}
@@ -26,7 +27,11 @@
                 </td>
                 <td>计划</td>
                 {% for stages in version_info.stage_plan %}
-                    <td>{{stages}}</td>
+                    <td><span>{{stages}}</span>
+                        {% for staff in version_info.assign_staffs %}
+                            <span class="staff_name" style="display:none">{{staff}}</span>
+                        {% endfor %}
+                    </td>
                 {% endfor %}
             </tr>
             <tr>
@@ -40,5 +45,14 @@
     </table>
     </div>
 </div>
+<script>
+    $('#show_staff').on('click', function() {
+        $('span.staff_name').show();
+    })
+    $('#hide_staff').on('click', function() {
+        $('span.staff_name').hide();
+    })
+
+</script>
 {%endblock%}
 
