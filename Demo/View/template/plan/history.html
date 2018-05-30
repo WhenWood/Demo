@@ -12,9 +12,11 @@
     <table class="ui celled table">
         <thead>
             <tr>
-                <th>序号 </th>
+                <th >序号 </th>
                 <th>修改人</th>
-                <th>修改时间 </th>
+                <th style="max-width:100px">修改时间 </th>
+                <th style="max-width:70px">Redmine系统名</th>
+                <th style="max-width:40px">Redmine系统版本</th>
                 <th>阶段</th>
                 <th>计划开始时间 </th>
                 <th>计划结束时间 </th>
@@ -33,6 +35,12 @@
                     </td>
                     <td rowspan="{{version_info.row}}" style="max-width:100px">
                         {{version_info.create_date|date:"Y-m-d H:i:s"}}
+                    </td>
+                    <td rowspan="{{version_info.row}}"  style="max-width:60px">
+                        {{version_info.redmine_project.sys_name}}
+                    </td>
+                    <td rowspan="{{version_info.row}}" style="max-width:40px">
+                        {{version_info.redmine_project.version}}
                     </td>
                     {% for stage in version_info.stage %}
                         <td>{{stage.stage}}</td>

@@ -90,6 +90,8 @@ class VersionPlan(models.Model):
     operator = models.CharField(max_length=20)
     plan_workload = models.FloatField(null=True)
     used_workload = models.FloatField(null=True)
+    sys_name = models.CharField(max_length=255,null=True,blank=True)
+    sys_version = models.CharField(max_length=255,null=True,blank=True)
     assign_staffs = models.ManyToManyField(Staff, related_name='staff_version_plan')
     redmine_project = models.ForeignKey(Redmine_projects, null=True, related_name='redmine_project_version_plan', on_delete=models.CASCADE)
 
@@ -112,17 +114,23 @@ class AssignActionRecord(models.Model):
     operator = models.CharField(max_length=100)
     disable_operator = models.CharField(max_length=100)
     create_time = models.DateTimeField(auto_now_add=True)
+    disable_time = models.DateTimeField(null=True)
 
 
 class StaffGroup(models.Model):
-    group_owner = models.CharField(max_length=100)
-    contains_staffs = models.ManyToManyField(Staff, related_name='staff_group')
+    group_owner = models.ForeignKey(authModel.User, related_name='user_group', on_delete=models.CASCADE)
+    group_name = models.CharField(unique=True, max_length=100, default='default_group')
 
 
-class SysGroup(models.Model):
-    pass
+class GroupVersionAuth(models.Model):
+    group = models.ForeignKey(StaffGroup, related_name='staff_group_version_auth', on_delete=models.CASCADE)
+    redmine_system = models.CharField(max_length=255)
+    operator = models.CharField(max_length=100)
 
 
-class GroupAuth(models.Model):
-    pass
+class GroupOperateAuth(models.Model):
+    user = models.ForeignKey(authModel.User, related_name='user_group_operate_auth', on_delete=models.CASCADE)
+    group = models.ForeignKey(StaffGroup, related_name='staff_group_operate_auth', on_delete=models.CASCADE)
+    user_type = models.IntegerField(null=True, blank=True)
+    operator = models.CharField(max_length=100)
 

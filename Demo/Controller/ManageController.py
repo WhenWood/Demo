@@ -229,10 +229,18 @@ class ManageController:
                 return HttpResponse("Init Redmine User Fail!" + str(e))
         elif hard_code == 'testredmine':
             from TestModel.dbModels import Redmine_projects
-            t = Redmine_projects.objects.values('sys_name','version').distinct()
+            t = Redmine_projects.objects.values('sys_name', 'version').distinct()
             xstr = ''
             for item in t:
                 xstr += str(item['version'])
+                print(item)
+            return HttpResponse(xstr)
+        elif hard_code == 'testview':
+            from TestModel.dbModels import RedmineSystem
+            t = RedmineSystem.objects.values('sys_name', 'sys_version')
+            xstr = ''
+            for item in t:
+                xstr += str(item['sys_name'])
                 print(item)
             return HttpResponse(xstr)
         else:

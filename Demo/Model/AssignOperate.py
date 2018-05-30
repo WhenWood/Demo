@@ -1,4 +1,5 @@
 from TestModel.dbModels import AssignActionRecord
+import datetime
 
 
 class AssignOperate:
@@ -9,5 +10,6 @@ class AssignOperate:
         assign_record.save()
 
     def disable_record(self, staff_names, version_name, operator):
-        assign_record = AssignActionRecord.objects.filter(version_plan_name=version_name, status=True,
-                                                          staff_name=staff_names).update(status=False, disable_operator=operator)
+        assign_record = AssignActionRecord.objects.filter(version_plan_name=version_name, status=True, staff_name=staff_names)\
+            .update(status=False, disable_operator=operator, disable_time=datetime.datetime.now())
+

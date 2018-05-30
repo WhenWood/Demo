@@ -1,0 +1,35 @@
+{% extends "../header.html"%}
+{% block body_content %}
+<div class="container">
+    <form id="add_group" action="/group/create_group/" method="post">
+        <input name="csrfmiddlewaretoken" value="{{ csrf_token }}" hidden>
+        <div><label>Group Name</label><input name="group_name"></div>
+        <button >新增组</button></form>
+
+    <div>
+        {% for group1 in groups %}
+        <input type="checkbox"><span>{{group1.group_name}}</span>
+        {% endfor %}
+    </div>
+    <div>
+        {% for group2 in my_group %}
+            {% if group2.user_type == 1 %}
+                <div>归属的小组</div>
+            {% elif group2.user_type == 2 %}
+                <div>管理的小组</div>
+            {% elif group2.user_type == 3 %}
+                <div>申请加入的小组</div>
+            {% elif group2.user_type == 4 %}
+                <div>申请失败的小组</div>
+            {% else %}
+                <div>其他</div>
+            {% endif %}
+            <div>
+                <input type="checkbox"><span>{{ group2.group_obj.group_name}}</span>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+{% endblock %}

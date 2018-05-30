@@ -327,6 +327,7 @@ class PlanController:
                         'order': order,
                         'operator':version.operator,
                         'create_date': version.create_time,
+                        'redmine_project':version.redmine_project,
                         'stage': stage_obj,
                         'row': len(stage_obj)
                     })

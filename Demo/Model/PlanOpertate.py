@@ -35,9 +35,12 @@ class PlanOperate:
         return VersionPlan.objects.filter(status=True).order_by('-update_time')
 
     def create(self, version_info, stage_infos):
-        self.suspend_plan(version_info['version_name'])
-        self.create_version_plan(version_info)
-        self.create_stage_plan(stage_infos)
+        version_plan_obj = VersionPlan.objects.filter(version_name=version_info['version_name'], status=True)
+        if len(version_plan_obj):
+            self.update_all(version_info, stage_infos)
+        else:
+            self.create_version_plan(version_info)
+            self.create_stage_plan(stage_infos)
 
     def update_all(self, version_info, stage_infos):
         if self.version_plan:
@@ -45,9 +48,10 @@ class PlanOperate:
         else:
             self.get_plan_operate_by_version_name(version_info['version_name'])
             version = self.version_plan
-        if not version:
-            self.suspend_plan()
+        if isinstance(version, VersionPlan):
             invalid_version_plan = self.version_plan
+            invalid_version_plan.status = False
+            invalid_version_plan.save()
             self.create(version_info, stage_infos)
             self.update_assign_staff(invalid_version_plan)
         else:
@@ -77,11 +81,22 @@ class PlanOperate:
 
     def suspend_plan(self, plan_name=''):
         if plan_name == '' and self.version_plan:
-            self.version_plan.status=False
+            self.version_plan.status = False
+            staffs = self.version_plan.assign_staffs.all()
+            for staff in staffs:
+                staff.status = authContant.AUTH_STATUS_UNASSIGNED
+                staff.save()
+            self.version_plan.assign_staffs.clear()
             self.version_plan.save()
         elif plan_name != '':
             plan = VersionPlan.objects.filter(version_name=plan_name, status=True)
-            plan.update(status=False)
+            plan.status = False
+            staffs = plan.assign_staffs.all()
+            for staff in staffs:
+                staff.status = authContant.AUTH_STATUS_UNASSIGNED
+                staff.save()
+            plan.assign_staffs.clear()
+            plan.save()
 
     def create_version_plan(self, version_info):
         version_plan = VersionPlan()
@@ -97,6 +112,8 @@ class PlanOperate:
         version_plan.operator = self.user.username
         sys_name = version_info['sys_name']
         sys_version = version_info['sys_version']
+        version_plan.sys_name = version_info['sys_name']
+        version_plan.sys_version = version_info['sys_version']
         redmine_pr = Redmine_projects.objects.filter(sys_name=sys_name, version=sys_version).order_by('-created_on')
         if len(redmine_pr):
             version_plan.redmine_project = redmine_pr[0]
@@ -117,10 +134,11 @@ class PlanOperate:
         return 0
 
     def update_assign_staff(self, invalid_version_plan):
-        staffs = invalid_version_plan.assign_staffs
+        staffs = invalid_version_plan.assign_staffs.all()
         for staff in staffs:
-            invalid_version_plan.assign_staffs.remove(staff)
             self.version_plan.assign_staffs.add(staff)
+            invalid_version_plan.assign_staffs.remove(staff)
+        invalid_version_plan.status = False
         invalid_version_plan.save()
         self.version_plan.save()
 

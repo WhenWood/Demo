@@ -36,7 +36,7 @@
             <tbody>
                 {% for info in version_staff %}
                     <tr>
-                        <td>{{info.version_name}}</td>
+                        <td><a href="/version_plan/edit?version_name={{info.version_name}}">{{info.version_name}}</td>
                         <td>{{info.stage_info.stage_status}}
                             {% if info.stage_info.error != -1 %}
                                 剩余时间为{{info.stage_info.left_days}}天
