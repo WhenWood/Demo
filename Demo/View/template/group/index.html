@@ -1,35 +1,199 @@
 {% extends "../header.html"%}
 {% block body_content %}
+            <p>{{msg}}</p>
 <div class="container">
-    <form id="add_group" action="/group/create_group/" method="post">
-        <input name="csrfmiddlewaretoken" value="{{ csrf_token }}" hidden>
-        <div><label>Group Name</label><input name="group_name"></div>
-        <button >新增组</button></form>
-
-    <div>
-        {% for group1 in groups %}
-        <input type="checkbox"><span>{{group1.group_name}}</span>
-        {% endfor %}
-    </div>
-    <div>
-        {% for group2 in my_group %}
-            {% if group2.user_type == 1 %}
-                <div>归属的小组</div>
-            {% elif group2.user_type == 2 %}
-                <div>管理的小组</div>
-            {% elif group2.user_type == 3 %}
-                <div>申请加入的小组</div>
-            {% elif group2.user_type == 4 %}
-                <div>申请失败的小组</div>
-            {% else %}
-                <div>其他</div>
-            {% endif %}
+    <div class="left-content" style="width:30%;float:left;">
+        <form id="add_group" action="/group/create_group/" method="post">
+            <input name="csrfmiddlewaretoken" value="{{ csrf_token }}" hidden>
+            <div><label>Group Name</label><input name="group_name"></div>
+            <button >新增组</button></form>
+        <div>所有小组</div>
+        <div>
+            {% for group1 in groups %}
+            <input type="checkbox"><span class="group_list" group-id="{{group1.id}}">{{group1.group_owner.username}}:{{group1.group_name}}</span>
+            {% endfor %}
+        </div>
+        <div>
+            <div>归属的小组</div>
             <div>
-                <input type="checkbox"><span>{{ group2.group_obj.group_name}}</span>
+                {% for group2 in limited_group %}
+                    <input type="checkbox">
+                    <span group-id="{{group2.id}}">{{ group2.group_name}}</span>
+                {% endfor %}
+
+            </div>
+            <div>管理的小组</div>
+            <div>
+                {% for group2 in under_control_group %}
+                <span><a href="?group_id={{group2.id}}">{{ group2.group_name}}</a></span>
+                {% endfor %}
+
+            </div>
+            <div>申请的小组</div>
+            <div>
+                {% for group2 in apply_group %}
+                    <input type="checkbox">
+                    <span class="group_apply"  group-id="{{group2.id}}">{{ group2.group_name}}</span>
+                {% endfor %}
+
+            </div>
+            <div>拒绝的小组</div>
+            <div>
+                {% for group2 in refuse_group %}
+                    <input type="checkbox">
+                    <span group-id="{{group2.id}}">{{ group2.group_name}}</span>
+                {% endfor %}
+
+            </div>
+            <div>其他</div>
+            <div>
+                {% for group2 in other_group %}
+                    <input type="checkbox">
+                    <span group-id="{{group2.id}}">{{ group2.group_name}}</span>
+                {% endfor %}
+
+            </div>
+        </div>
+        {% if group_id %}
+        <div>
+            <a href="/group/version/?group_id={{group_id}}">编辑该组元素</a>
+        </div>
+        {% endif %}
+    </div>
+    <div class="right-content" style="width:70%;float:left;height:700px">
+
+        <div>已添加用户</div>
+        <div class="add-user-list" style="height:100px;overflow:scroll">
+        <div class="line" style="width:20%;float:left;">
+            {% if group_owner.username ==  request_user.username %}
+            <span style="padding:10px;cursor:pointer;" class="self group_owner" user-id="{{group_owner.id}}">{{group_owner.username}}</span>
+            {% else %}
+            <span style="padding:10px;cursor:pointer;" class="admin group_owner" user-id="{{group_owner.id}}">{{group_owner.username}}</span>
+            {% endif %}
+        </div>
+        {% for user in group_admin %}
+            <div class="line" style="width:20%;float:left;">
+                {% if user.username ==  request_user.username %}
+                <span style="padding:10px;cursor:pointer;" class="self" user-id="{{user.id}}">{{user.username}}</span>
+                {% else %}
+                <span style="padding:10px;cursor:pointer;" class="admin group_admin" user-id="{{user.id}}">{{user.username}}</span>
+                {% endif %}
             </div>
         {% endfor %}
+        {% for user in group_user %}
+            <div class="line" style="width:20%;float:left;">
+                <span class="user_list group_user" style="padding:10px;cursor:pointer;" user-id="{{user.id}}">{{user.username}}</span>
+            </div>
+        {% endfor %}
+        </div>
+        <div>申请加入用户</div>
+        <div class="apply-user-list" style="height:100px;overflow:scroll">
+        {% for user in apply_users %}
+            <div class="line" style="width:20%;float:left;">
+                <span class="user_list apply_user" style="padding:10px;cursor:pointer;" user-id="{{user.id}}">{{user.username}}</span>
+            </div>
+        {% endfor %}
+        </div>
+        <div>可添加用户 </div>
+        <div class="user-list" style="height:500px;overflow:scroll">
+        {% for staff in staff_list %}
+            <div class="line" style="width:20%;float:left;">
+                <span class="user_list candidate" style="padding:10px;cursor:pointer;" title="{{staff.name}}">{{staff.name}}</span>
+            </div>
+        {% endfor %}
+        </div>
     </div>
 </div>
+<script>
+    var group_action = function(action, group_id, user_id, staff_name) {
+        data = {
+            'action':action,
+            'group_id':group_id,
+            'user_id':user_id,
+            'staff_name':staff_name,
+            'csrfmiddlewaretoken': '{{csrf_token}}',
+        }
+        $.ajax({
+            url:'/group/manage/',
+            data:data,
+            type:'post',
+            success:function(data){
+                console.log(data);
+                if(data.code==0) alert(data);
+                else alert(data);
+                window.location.reload();
+            }
+        });
+    }
 
+    var add_staff_to_group = function(action) {
+        group_id = $(this).attr('group-id')
+        staff_names = []
+        item = $(this).parent().find("span.active")
+        for(var i=0;i<item.length;++i) {
+            name.push($(item[i]).val());
+        }
+        data = {
+            'action':action,
+            'group_id':group_id,
+            'staff_names':JSON.stringify(staff_names),
+            'csrfmiddlewaretoken': '{{csrf_token}}',
+        }
+        $.ajax({
+            url:'/group/batch_process/',
+            data:data,
+            type:'post',
+            success:function(data){
+                alert(data);
+            }
+        });
+    }
+
+    $("span.group_list").one("click",function(){
+        group_id = $(this).attr('group-id');
+        group_action("apply", group_id, {{request_user.id}}, "{{request_user.username}}");
+    })
+
+    $("span.user_list").on("click", function(){
+        $(this).toggleClass("active");
+    })
+
+    $("span.apply_user").hover(function() {
+        user_id = $(this).attr("user-id");
+        username = $(this).text();
+        html = "<button id='accept' onclick='group_action(\"accept\", \"{{group_id}}\", "+user_id+",\""+username+"\")'>同意</button>"
+        +"<button id='refuse' onclick='group_action(\"refuse\", \"{{group_id}}\", "+user_id+",\""+username+"\")'>拒绝</button></div>";
+        $(this).append(html);
+    }, function() {$(this).children().remove()})
+
+    $("span.group_apply").hover(function() {
+        group_id = $(this).attr("group-id");
+        html = "<button onclick='group_action(\"retract\", "+group_id+", "+{{request_user.id}}+",\"{{request_user.username}}\")'>撤回</button>";
+        $(this).append(html);
+    }, function() {$(this).children().remove()})
+
+    $("span.group_user").hover(function() {
+        user_id = $(this).attr("user-id");
+        username = $(this).text();
+        html = "<button onclick='group_action(\"grant_auth\", \"{{group_id}}\", "+user_id+",\""+username+"\")'>设为管理员</button>"+
+        "<button onclick='group_action(\"remove_staff\", \"{{group_id}}\", "+user_id+",\""+username+"\")'>移出本组</button>";
+        $(this).append(html);
+    }, function() {$(this).children().remove()})
+
+    $("span.group_admin").hover(function() {
+        user_id = $(this).attr("user-id");
+        username = $(this).text();
+        html = "<button onclick='group_action(\"revoke_auth\", \"{{group_id}}\", "+user_id+",\""+username+"\")'>取消管理权限</button>";
+        $(this).append(html);
+    }, function() {$(this).children().remove()})
+
+    $("span.candidate").hover(function() {
+        staff_name = $(this).text();
+        html = "<button onclick='group_action(\"add_staff\", \"{{group_id}}\", \"\",\""+staff_name+"\")'>加入本组</button>";
+        $(this).append(html);
+    }, function() {$(this).children().remove()})
+
+
+</script>
 
 {% endblock %}
