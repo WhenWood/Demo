@@ -58,7 +58,6 @@ class Redmine_projects(models.Model):
         db_table = "Redmine_projects"
 
 
-
 class Staff(models.Model):
     name = models.CharField(max_length=50)
     status = models.IntegerField(10)
@@ -86,8 +85,8 @@ class VersionPlan(models.Model):
     status = models.BooleanField(default=False)
     create_time = models.DateTimeField(auto_now_add=True)
     update_time = models.DateTimeField(auto_now=True)
-    complete_time = models.DateTimeField(auto_now=True)
-    operator = models.CharField(max_length=20)
+    create_user = models.CharField(max_length=100)
+    update_user = models.CharField(max_length=100)
     plan_workload = models.FloatField(null=True)
     used_workload = models.FloatField(null=True)
     sys_name = models.CharField(max_length=255,null=True,blank=True)
@@ -105,6 +104,7 @@ class StagePlan(models.Model):
     plan_end_date = models.DateField()
     plan_workload = models.FloatField(null=True)
     used_workload = models.FloatField(null=True)
+    operator = models.CharField(max_length=100)
 
 
 class AssignActionRecord(models.Model):
@@ -120,6 +120,7 @@ class AssignActionRecord(models.Model):
 class StaffGroup(models.Model):
     group_owner = models.ForeignKey(authModel.User, related_name='user_group', on_delete=models.CASCADE)
     group_name = models.CharField(unique=True, max_length=100, default='default_group')
+    status = models.BooleanField(default=True)
 
 
 class GroupVersionAuth(models.Model):

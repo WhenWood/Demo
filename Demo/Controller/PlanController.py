@@ -1,14 +1,12 @@
 from Demo.Model.PlanOpertate import PlanOperate
-from Demo.Model.StaffOperate import StaffOperate
 from TestModel.dbModels import VersionPlan,Redmine_projects
 from django.urls import path
 from django.http import HttpResponseRedirect, HttpResponse
-from Demo.Model.Auth import Auth
 from django.template.response import TemplateResponse
-import traceback
 import datetime
 from django.db.models import Q
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from Demo.Model.GroupOperate import GroupOperate
 
 
 class PlanController:
@@ -27,7 +25,10 @@ class PlanController:
             search = ''
             if 'search' in request.GET:
                 search = request.GET['search']
-            versions = VersionPlan.objects.filter(status=True, version_name__icontains=search).order_by('-update_time')
+            #versions = VersionPlan.objects.filter(status=True, version_name__icontains=search).order_by('-update_time')
+            group_op = GroupOperate(request.user)
+            version_type = request.GET.get("version_type")
+            versions = group_op.get_group_version_plans(version_type)
             version_infos = []
             for version in versions:
                 plan = PlanOperate(request.user, version)
@@ -42,8 +43,6 @@ class PlanController:
                         plan_workload=stage.plan_workload,
                         used_workload=stage.used_workload,
                     ))
-
-
                 version_infos.append({
                     'site': '/version_plan/edit?version_name='+version.version_name,
                     'name': version.version_name,
@@ -69,7 +68,10 @@ class PlanController:
         if 'search' in request.GET:
             search = request.GET['search']
         date_list = self.get_days(start_date, days)
-        versions = VersionPlan.objects.filter(status=True, version_name__icontains=search)
+        #versions = VersionPlan.objects.filter(status=True, version_name__icontains=search)
+        group_op = GroupOperate(request.user)
+        version_type = request.GET.get("version_type")
+        versions = group_op.get_group_version_plans(version_type)
         version_infos = []
         for version in versions:
             stage_obj_plan = ['' for i in range(0, days)]
@@ -139,6 +141,7 @@ class PlanController:
                 version_info['plan_workload'] = float(request.POST['plan_workload'])
                 if request.POST['used_workload'] and request.POST['user_workload'] != 'None':
                     version_info['used_workload'] = float(request.POST['used_workload'])
+                version_info['create_user'] = request.user.username
                 msg = plan.create_version_plan(version_info)
                 return HttpResponse(msg)
             elif request.POST['action'] == 'add_stage':
@@ -157,7 +160,9 @@ class PlanController:
                 start_rows = 1
                 row_count = sheet1.nrows
                 version_info={'version_name': version_name, 'sys_name':sys_name,'sys_version':sys_version,
-                              'plan_workload': sheet1.cell_value(1, 3)}
+                              'plan_workload': sheet1.cell_value(1, 3), 'create_user': request.user.username,
+                              'update_user': request.user.username,
+                              }
                 stage_objs = []
                 for row in range(start_rows, row_count):
                     stage = sheet1.cell_value(row, 4)
@@ -248,6 +253,8 @@ class PlanController:
                     version_name=request.POST['version_name'],
                     plan_workload=request.POST['version_plan_workload'],
                     used_workload=used_workload,
+                    create_user=request.user.username,
+                    update_user=request.user.username,
                 )
                 stage_infos = request.POST.getlist('stage_infos')[0]
                 import json
@@ -265,10 +272,13 @@ class PlanController:
                     versions.append(item['version'])
                 import json
                 return HttpResponse(json.dumps(versions), content_type="application/json")
+            return HttpResponse("")
 
         else:
             if 'version_name' in request.GET:
                 version_name = request.GET['version_name']
+                if version_name == "":
+                    HttpResponseRedirect("/manage/table")
                 plan = PlanOperate(request.user, version_name)
                 stage_arr = []
                 for stage in plan.stage_plans:
@@ -279,19 +289,19 @@ class PlanController:
                 system_versions = ['']
                 for item in redmine_systems:
                     system_names.append(item['sys_name'])
-
                 if isinstance(plan.version_plan, VersionPlan) and plan.version_plan.redmine_project:
                     redmine_system_versions = Redmine_projects.objects\
-                        .filter(sys_name= plan.version_plan.redmine_project.sys_name).values('version').distinct()
+                        .filter(sys_name=plan.version_plan.redmine_project.sys_name).values('version').distinct()
                     for item in redmine_system_versions:
                         system_versions.append(item['version'])
-
+                import json
                 context = dict({
                     'version_name': version_name,
                     'version_info': plan.version_plan,
                     'redmine_info': plan.version_plan.redmine_project,
-                    'system_names':system_names,
-                    'system_versions':system_versions,
+                    'system_names': system_names,
+                    'json_system_names': json.dumps(system_names),
+                    'system_versions': system_versions,
                     'stage_info': stage_arr,
                 })
                 return TemplateResponse(request, 'plan/edit.html', context)

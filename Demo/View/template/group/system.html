@@ -1,8 +1,100 @@
 {% extends "../header.html"%}
+{% block static_file %}
+<style>
+    .candidate_system.active{background:cornflowerblue}
+    .joined_system.active{background:darksalmon}
+</style>
+{% endblock %}
 {% block body_content %}
 <div class="container">
-    <p>
-        {{msg}}
-    </p>
+    <div>选择关联的系统</div>
+        <div style="width:20%;float:left;">
+            <div><span>管理的组</span></div>
+            <div>
+                {% for group2 in under_control_group %}
+                <span><a href="?group_id={{group2.id}}">{{ group2.group_name}}</a></span>
+                {% endfor %}
+            </div>
+
+        </div>
+        <div style="width:30%;float:left;">
+            <div><span>可以选系统</span></div>
+            <div style="height:700px;overflow:scroll">
+                {% for system in system_names %}
+                    <span style="display:block" class="candidate_system system">{{system}}</span>
+                {% endfor %}
+            </div>
+        </div>
+        <div style="width:15%;float:left;">
+            <div>
+                <button id="add_system">加入</button>
+            </div>
+            <br>
+            <br>
+            <div>
+                <button id="remove_system">移除</button>
+            </div>
+        </div>
+        <div style="width:30%;float:left;">
+            <div><span>已选系统</span></div>
+            <div>
+                {% for system in joined_system %}
+                <span style="display:block;" class="joined_system system">{{system}}</span>
+                {% endfor %}
+            </div>
+        </div>
 </div>
+
+<script>
+    $("span.system").on("click", function(){
+        $(this).toggleClass("active");
+    })
+
+
+    $("#add_system").on('click', function(){add_system();})
+    $("#remove_system").on('click', function(){remove_system();})
+
+    var add_system = function() {
+        var systems = []; var $item = $('span.candidate_system.active');
+        for(var i=0;i<$item.length;++i){systems.push($($item[i]).text());}
+        group_id = {{group_id}};
+        data = {
+            'action':'add_system',
+            'group_id':group_id,
+            'systems':JSON.stringify(systems),
+            'csrfmiddlewaretoken': '{{csrf_token}}',
+        }
+        $.ajax({
+            url:'/group/system/',
+            data:data,
+            type:'post',
+            success:function(data){
+                alert(data);
+                window.location.reload();
+            }
+        });
+    }
+
+  var remove_system = function() {
+        var systems = []; var $item = $('span.joined_system.active');
+        for(var i=0;i<$item.length;++i){systems.push($($item[i]).text());}
+        group_id = {{group_id}};
+        data = {
+            'action':'remove_system',
+            'group_id':group_id,
+            'systems':JSON.stringify(systems),
+            'csrfmiddlewaretoken': '{{csrf_token}}',
+        }
+        $.ajax({
+            url:'/group/system/',
+            data:data,
+            type:'post',
+            success:function(data){
+                alert(data);
+                window.location.reload();
+            }
+        });
+    }
+
+</script>
 {% endblock %}

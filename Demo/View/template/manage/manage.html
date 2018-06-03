@@ -1,13 +1,154 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>ManagerPage</title>
-    {% for link in links%}
-    <span><a href="{{link.site}}">{{link.name}}</a></span>
-    {% endfor %}
-</head>
-<body>
+{% extends "../header.html"%}
+{% block static_file %}
+<style>
+.model {
+    display: none; /* 默认隐藏 */
+    position: fixed; /* 固定定位 */
+    z-index: 1; /* 设置在顶层 */
+    left: 0;
+    top: 0;
+    width: 30%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,1);
+    color:rgb(255,255,255);
+}
+.staff_list {
+    width:120px;
+    float:left;
+    cursor:pointer;
+}
 
-</body>
-</html>
+</style>
+{% endblock %}
+{% block body_content %}
+<div class="container">
+        <div id="myModel" class="model"></div>
+        <table class="ui celled table">
+            <thead>
+            <tr>
+                <th>系统</th>
+                <th>可用人员</th>
+                <th>版本</th>
+                <th>状态</th>
+                <th>人员</th>
+            </tr>
+            </thead>
+            <tbody>
+                {% for sys_info in system_version_staff %}
+                <tr>
+                    <td rowspan="{{sys_info.system_rowspan}}">{{sys_info.system}}</td>
+                    <td rowspan="{{sys_info.system_rowspan}}" class="unassigned_staff">
+                        {% for staff in sys_info.unassigned_staff %}
+                            <div class="staff_list">
+                                <a class="unassigned" title="{{staff.name}}" versions='{{sys_info.version_name_arr}}'>{{staff.name}}</a>
+                            </div>
+                        {% endfor %}
+                    </td>
+                    {% if sys_info.version_staff %}
+                        {% for info in sys_info.version_staff %}
+                            <td><a href="/version_plan/edit?version_name={{info.version_name}}">{{info.version_name}}</a></td>
+                            <td>{{info.stage_info.stage_status}}
+                                {% if info.stage_info.error != -1 %}
+                                    剩余时间为{{info.stage_info.left_days}}天
+                                {% endif %}
+                            </td>
+                            <td>
+                            {% for staff in info.assigned_staff %}
+                                <div class="staff_list">
+                                <a class="assigned" version="{{info.version_name}}" title="{{staff.name}}">
+                                    {{staff.name}}</a>
+                                </div>
+                            {% endfor %}
+                            </td>
+                        </tr>
+                        <tr>
+                        {% endfor %}
+                    {% else %}
+                            <td></td><td></td><td></td>
+                    {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+</div>
+<script>
+    function assign(version_name, staff_name) {
+
+        data = {
+            'version_name':version_name,
+            'staff_name':staff_name,
+            'csrfmiddlewaretoken': '{{csrf_token}}',
+        }
+        $.ajax({
+            url:'/manage/assign/',
+            data:data,
+            type:'post',
+            success:function(msg){
+
+                if(msg=='success'){
+                    alert('版本计划更新成功');
+                    console.log('更新成功');
+                }else{
+                    alert(msg);
+                    console.log('更新失败');
+                }
+            }
+        });
+        window.location.reload();
+    }
+
+    function unassign(version_name, staff_name) {
+        data = {
+            'version_name':version_name,
+            'staff_name':staff_name,
+            'csrfmiddlewaretoken': '{{csrf_token}}',
+        }
+         $.ajax({
+            url:'/manage/unassign/',
+            data:data,
+            type:'post',
+            success:function(msg){
+
+                if(msg=='success'){
+                    alert('释放人员成功');
+                    console.log('更新成功');
+                }else{
+                    alert(msg);
+                    console.log('更新失败');
+                }
+            }
+        });
+        window.location.reload();
+
+    }
+
+    $('a.unassigned').on('click', function(){
+        staff_name = $(this).attr('title');
+        version_list = JSON.parse($(this).attr('versions'));
+        html = "<div>"+
+            "<span onclick=$('#myModel').hide()>取消</span>"+
+        "<div>"
+                +"<ul>"
+        for(var i=0;i<version_list.length;++i) {
+            console.log(version_list[i]);
+            html = html +"<li><span onclick=assign('"+version_list[i]+"','"+staff_name+"')>"+version_list[i]+"</span></li>";
+        }
+        html = html +"</ul></div></div>";
+        $("#myModel").children().remove();
+        $("#myModel").append(html);
+        $("#myModel").show();
+    })
+
+    $('a.assigned').on('click', function(){
+        version_name = $(this).attr('version');
+        staff_name = $(this).attr('title');
+        html =  "<div class='container'>"+
+            "<span onclick=unassign('"+version_name+"','"+staff_name+"')>释放人员</span>"+
+            "<span onclick=$(this).parent().hide()>取消</span>"+
+        "</div>"
+        $(this).parent().append(html);
+    })
+
+</script>
+{% endblock %}

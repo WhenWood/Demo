@@ -132,7 +132,9 @@
 
 <div class="container">
     <h2 class="ui dividing header"> {{version_info.version_name}} 版本计划修改</h2>
-    <div><button type="button" id="suspend">终止计划</button></div>
+    {% if version_info.status %}
+        <div><button type="button" id="suspend">终止计划</button></div>
+    {% endif %}
     <div>
         <a href="history?version_name={{version_info.version_name}}"> 版本修改历史</a>
     </div>

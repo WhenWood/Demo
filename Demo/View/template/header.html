@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,6 +9,19 @@
     {% endblock %}
 </head>
 <body style="overflow:scroll">
+
+<div style="height:50px; font-size: 20px;">
+    <span style="padding:20px"><a href="/manage/">人员分配界面</a></span>
+    <span style="padding:20px"><a href="/group/manage/">组员管理</a></span>
+    <span style="padding:20px"><a href="/group/system/">组关联系统管理</a></span>
+    <span style="padding:20px"><a href="/version_plan/add">增加版本</a></span>
+    <span style="padding:20px"><a href="/version_plan/table">版本状态</a></span>
+
+    {% if is_supper_user %}
+        <span style="padding:20px"><a href="/manage/auth">系统权限管理</a></span>
+    {% endif %}
+    <span style="padding:20px"><a href="/admin/logout">退出登录</a></span>
+</div>
 {% block body_content %}
 {% endblock %}
 </body>

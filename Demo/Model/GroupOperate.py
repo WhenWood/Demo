@@ -4,6 +4,7 @@ from Demo.Constant import authContant
 from TestModel.dbModels import Redmine_projects
 import datetime
 from django.contrib.auth import models as authModel
+from django.db.models import Q
 
 class GroupOperate:
     group = ''
@@ -82,7 +83,7 @@ class GroupOperate:
             print(4)
             return {"code":-1, "msg":"申请加入组出错，出错信息为" + str(e)}
 
-    def get_my_groups(self):
+    def get_my_groups(self, group_type=""):
         group_op_auth = self.user.user_group_operate_auth.all()
         under_control_group = []
         limited_group = []
@@ -101,6 +102,16 @@ class GroupOperate:
                 refuse_group.append(group)
             else:
                 other_group.append(group)
+        if group_type == "valid":
+            return under_control_group + limited_group
+        elif group_type == "apply":
+            return apply_group
+        elif group_type == "refuse":
+            return refuse_group
+        elif group_type == "admin":
+            return under_control_group
+        elif group_type == "invalid":
+            return apply_group + refuse_group
         return under_control_group, limited_group, apply_group, refuse_group, other_group
 
     def get_all_groups(self):
@@ -110,17 +121,18 @@ class GroupOperate:
     def get_group_all_user(self, group=""):
         if not isinstance(group, StaffGroup) and group:
             group = StaffGroup.objects.filter(id=group)
+            if len(group):
+                group = group[0]
         if not group:
             return [], [], [], None
-        else:
-            group = group[0]
+
         group_op_auth = group.staff_group_operate_auth.all()
         user_obj = []
         admin_obj = []
         apply_obj = []
         group_owner = group.group_owner
         for op_auth in group_op_auth:
-            if op_auth.user == group_owner:
+            if op_auth.user.id == group_owner.id:
                 continue
             elif op_auth.user_type == authContant.AUTH_GROUP_ADMIN:
                 admin_obj.append(op_auth.user)
@@ -265,25 +277,89 @@ class GroupOperate:
         except Exception as e:
             return {"code":-1,"msg":"移除组成员出错" + str(e)}
 
-    def get_group_version_plan(self):
-        group_ver_auth = self.group.staff_group_version_auth.all()
-        version_obj = []
-        for ver_auth in group_ver_auth:
-            sys_name = ver_auth.redmine_system
-            versions = VersionPlan.objects.filter(sys_name=sys_name)
-            for version in versions:
-                version_obj.append(version)
+    def get_group_version_plans(self, version_type="valid"):
+        groups = self.get_my_groups("valid")
+        sys_name_record = []
+        version_obj = set()
+        for group in groups:
+            group_ver_auth = group.staff_group_version_auth.all()
+            for ver_auth in group_ver_auth:
+                sys_name = ver_auth.redmine_system
+                if sys_name in sys_name_record:
+                    continue
+                sys_name_record.append(sys_name)
+                if version_type == "all":
+                    versions = VersionPlan.objects.filter(sys_name=sys_name)
+                elif version_type == "invalid":
+                    versions = VersionPlan.objects.filter(sys_name=sys_name, status=False)
+                else:
+                    versions = VersionPlan.objects.filter(sys_name=sys_name, status=True)
+                for version in versions:
+                    version_obj.add(version)
         return version_obj
 
-    def add_version_to_group(self, redmine_system):
-        ver_auth = GroupVersionAuth()
-        ver_auth.group = self.group
-        ver_auth.redmine_system = redmine_system
-        ver_auth.operator = self.user.username
-        ver_auth.save()
+    def get_group_system_info(self):
+        groups = self.get_my_groups("admin")
+        system_info = {}
+        for group in groups:
+            group_ver_auth = group.staff_group_version_auth.all()
+            admin_obj, user_obj, apply_obj, group_owner = self.get_group_all_user(group)
+            for ver_auth in group_ver_auth:
+                sys_name = ver_auth.redmine_system
+                if sys_name in system_info:
+                    for item in admin_obj+user_obj:
+                        if item not in system_info[sys_name]['user_obj']:
+                            system_info[sys_name]['user_obj'].append(item)
+                    continue
+                versions = VersionPlan.objects.filter(sys_name=sys_name)
+                version_obj = []
+                for version in versions:
+                    version_obj.append(version)
+                all_user_obj = admin_obj+user_obj
+                system_info[sys_name] = {'version_obj':version_obj, 'user_obj': all_user_obj}
+        return system_info
 
-    def remove_version_to_group(self, redmine_system):
-        ver_auth = GroupVersionAuth.objects.filter(redmine_system=redmine_system)
-        ver_auth.delete()
+    def get_group_redmine_system(self, group_id=""):
+        if isinstance(self.group, StaffGroup) and group_id == "":
+            group_id = self.group.id
+        group_ver_auth = GroupVersionAuth.objects.filter(group_id=group_id)
+        system = []
+        for ver_auth in group_ver_auth:
+            system.append(ver_auth.redmine_system)
+        return system
+
+    def add_redmine_system_to_group(self, redmine_system, group_id=""):
+        try:
+            if not isinstance(self.group, StaffGroup):
+                group = StaffGroup.objects.filter(id=group_id)
+                if len(group):
+                    group = group[0]
+            else:
+                group = self.group
+            if not group:
+                return {"code":1,"msg":"增加组关联系统失败：未选择组编号，或组编号无效"}
+            ver_auth = GroupVersionAuth()
+            ver_auth.group = group
+            ver_auth.redmine_system = redmine_system
+            ver_auth.operator = self.user.username
+            ver_auth.save()
+            return {"code": 0, "msg": "增加组关联系统成功"}
+        except Exception as e:
+            return {"code": -1, "msg": "增加组关联系统出错，错误信息为" + str(e)}
+
+    def remove_redmine_system_to_group(self, redmine_system, group_id=""):
+        try:
+            if isinstance(self.group, StaffGroup) and group_id == "":
+                group = StaffGroup.objects.filter(id=group_id)
+                if len(group):
+                    self.group = group[0]
+                    group_id = group[0].id
+                else:
+                    return {"code":1,"msg":"移除组关联系统失败：未选择组编号，或组编号无效"}
+            ver_auth = GroupVersionAuth.objects.filter(redmine_system=redmine_system, group_id=group_id)
+            ver_auth.delete()
+            return {"code": 0, "msg": "移除组关联系统成功"}
+        except Exception as e:
+            return {"code":-1, "msg":"移除组关联系统出错，错误信息为"+str(e)}
 
 

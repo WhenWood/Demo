@@ -1,15 +1,12 @@
-from django.contrib.auth import authenticate, login
 from django.urls import path
 from django.http import HttpResponseRedirect, HttpResponse
 from django.template.response import TemplateResponse
-from Demo.Model.Auth import Auth
 from Demo.Model.StaffOperate import StaffOperate
 from TestModel.dbModels import Staff, VersionPlan
 from Demo.Model.PlanOpertate import PlanOperate
 from Demo.Constant import authContant
-from django.contrib.auth.models import User
 from TestModel.dbModels import redmine_users
-
+from Demo.Controller.GroupController import GroupOperate
 
 class ManageController:
     user = ''
@@ -146,6 +143,51 @@ class ManageController:
         else:
             return self.my_page(request)
 
+    def staff_status_for_group_admin(self, request):
+        if not request.user.is_authenticated:
+            return HttpResponseRedirect('%s?next=%s' % ('/admin/login/?next=', request.path))
+
+        group_op = GroupOperate(request.user)
+
+        if group_op:
+            all_system_info = group_op.get_group_system_info()
+            system_version_staff = []
+            for system in all_system_info:
+                versions = all_system_info[system]['version_obj']
+                users = all_system_info[system]['user_obj']
+                unassigned_staff = []
+                for user in users:
+                    staff = user.user_staff.all()[0]
+                    if staff.status == authContant.AUTH_STATUS_UNASSIGNED:
+                        unassigned_staff.append(staff)
+                version_staff = []
+                version_name_arr = []
+                for version in versions:
+                    plan_obj = PlanOperate(self.user, version)
+                    assigned_staff = version.assign_staffs.all()
+                    version_name_arr.append(version.version_name)
+                    version_staff.append(dict(
+                        stage_info=plan_obj.get_stage(),
+                        assigned_staff=assigned_staff,
+                        version_name=version.version_name,
+                    ))
+                import json
+                system_version_staff.append(dict(
+                    version_name_arr=json.dumps(version_name_arr),
+                    version_staff=version_staff,
+                    unassigned_staff=unassigned_staff,
+                    system_rowspan=max(len(version_staff),1),
+                    system=system,
+                ))
+
+            context = dict(
+                system_version_staff=system_version_staff,
+                is_supper_user=request.user.is_superuser,
+            )
+            return TemplateResponse(request, 'manage/manage.html', context)
+        else:
+            return self.my_page(request)
+
     def my_page(self, request):
         if self.user == '':
             self.user = request.user
@@ -243,13 +285,29 @@ class ManageController:
                 xstr += str(item['sys_name'])
                 print(item)
             return HttpResponse(xstr)
+        elif hard_code == "add_user_group":
+            t = GroupOperate(request.user)
+            for id in range(3,10):
+                t.add_user_to_group(id, 7)
+            return HttpResponse(0)
         else:
             return HttpResponse("Can not find Command")
+
+    def user_auth_control(self, request):
+        if not request.user.is_superuser:
+            return HttpResponse("无权限操作")
+        if request.method == "POST":
+            pass
+        else:
+            staff_op = StaffOperate(request.user)
+            staff_list = staff_op.get_all_active_staff(True)
+
+
 
 
 controller = ManageController()
 urlpatterns = [
-    path('',controller.index),
+    path('',controller.staff_status_for_group_admin),
     path('add_user/', controller.add_user),
     path('add_manager/', controller.add_manager),
     path('change_password/', controller.change_password),

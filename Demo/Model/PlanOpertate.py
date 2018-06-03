@@ -22,7 +22,7 @@ class PlanOperate:
 
     def get_plan_operate_by_version_name(self, name):
         if self.version_plan == '' or self.version_plan.version_name != name:
-            version_plan_obj = VersionPlan.objects.filter(version_name=name, status=True).order_by('-update_time')
+            version_plan_obj = VersionPlan.objects.filter(version_name=name).order_by('-update_time')
             if version_plan_obj:
                 self.version_plan = version_plan_obj[0]
         if self.version_plan:
@@ -66,7 +66,7 @@ class PlanOperate:
             version_plan.plan_workload = float(version_plan['used_workload'])
         version_plan.save()
 
-    def update_stage(self, stage_infos):
+    def update_stage(self, stage_infos, operator=""):
         for stage in stage_infos:
             stage_plan = self.stage_plans.get(stage=stage)
             stage_info = stage_infos[stage]
@@ -76,6 +76,7 @@ class PlanOperate:
             for var in self.stage_var_list:
                 if var in stage_info:
                     stage_plan.__dict__[var] = stage_info[var]
+            stage_plan.operator = operator
             stage_plan.save()
         self.stage_plans = self.version_plan.version_plan_stage_plan.all()
 
@@ -109,7 +110,7 @@ class PlanOperate:
         if ('used_workload' in version_info) and version_info['used_workload']:
             version_plan.plan_workload = float(version_info['used_workload'])
         version_plan.status = True
-        version_plan.operator = self.user.username
+        version_plan.create_user = self.user.username
         sys_name = version_info['sys_name']
         sys_version = version_info['sys_version']
         version_plan.sys_name = version_info['sys_name']
@@ -128,6 +129,7 @@ class PlanOperate:
             for var in self.stage_var_list:
                 if var in stage_info and stage_info[var] != '':
                     stage_plan.__dict__[var] = stage_info[var]
+            stage_plan.operator = self.user.username
             stage_plan.version_plan = self.version_plan
             stage_plan.save()
         self.stage_plans = self.version_plan.version_plan_stage_plan.all()
